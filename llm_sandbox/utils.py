@@ -79,7 +79,7 @@ def get_code_execution_command(lang: str, code_file: str) -> List[str]:
         commands.append(f"python {code_file}")
     elif lang == SupportedLanguage.JAVA:
         commands.append(f"javac {code_file}")
-        commands.append(f"java {code_file.replace('.java', '')}")
+        commands.append(f"java {code_file.replace('.java', ''')}")
     elif lang == SupportedLanguage.JAVASCRIPT:
         commands.append(f"node {code_file}")
     elif lang == SupportedLanguage.CPP:

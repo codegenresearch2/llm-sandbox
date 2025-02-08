@@ -52,8 +52,9 @@ class SandboxSession:
 
     def open(self):
         warning_str = (
-            "Since the `keep_template` flag is set to True the docker image will not be removed after the session ends "
-            "and remains for future use.")
+            f"Since the `keep_template` flag is set to True the docker image will not be removed after the session ends "
+            f"and remains for future use."
+        )
         if self.dockerfile:
             self.path = os.path.dirname(self.dockerfile)
             if self.verbose:

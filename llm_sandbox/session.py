@@ -35,7 +35,8 @@ class SandboxSession:
 
         if lang not in SupportedLanguageValues:
             raise ValueError(
-                f"Language {lang} is not supported. Must be one of {SupportedLanguageValues}")
+                f"Language {lang} is not supported. Must be one of {SupportedLanguageValues}"
+            )
 
         if not image and not dockerfile:
             image = DefaultImage.__dict__[lang.upper()]
@@ -121,12 +122,14 @@ class SandboxSession:
     def run(self, code: str, libraries: Optional[List] = None):
         if not self.container:
             raise RuntimeError(
-                "Session is not open. Please call open() method before running code.")
+                "Session is not open. Please call open() method before running code."
+            )
 
         if libraries:
             if self.lang.upper() in NotSupportedLibraryInstallation:
                 raise ValueError(
-                    f"Library installation has not been supported for {self.lang} yet!")
+                    f"Library installation has not been supported for {self.lang} yet!"
+                )
 
             command = get_libraries_installation_command(self.lang, libraries)
             self.execute_command(command)
@@ -142,7 +145,8 @@ class SandboxSession:
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:
             raise RuntimeError(
-                "Session is not open. Please call open() method before copying files.")
+                "Session is not open. Please call open() method before copying files."
+            )
 
         if self.verbose:
             print(f"Copying {self.container.short_id}:{src} to {dest}..")
@@ -158,7 +162,8 @@ class SandboxSession:
     def copy_to_runtime(self, src: str, dest: str):
         if not self.container:
             raise RuntimeError(
-                "Session is not open. Please call open() method before copying files.")
+                "Session is not open. Please call open() method before copying files."
+            )
 
         is_created_dir = False
         directory = os.path.dirname(dest)
@@ -184,7 +189,8 @@ class SandboxSession:
 
         if not self.container:
             raise RuntimeError(
-                "Session is not open. Please call open() method before executing commands.")
+                "Session is not open. Please call open() method before executing commands."
+            )
 
         if self.verbose:
             print(f"Executing command: {command}")

@@ -129,7 +129,7 @@ class SandboxSession:
             command = get_libraries_installation_command(self.lang, libraries)
             self.execute_command(command)
 
-        code_file = f"\/tmp\/code.{get_code_file_extension(self.lang)}"
+        code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
         with open(code_file, "w") as f:
             f.write(code)
 

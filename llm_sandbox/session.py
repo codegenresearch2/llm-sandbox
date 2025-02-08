@@ -1,1 +1,1 @@
-import os", "tarfile", "docker", "io", "tarfile", "docker.models.images", "docker.models.containers", "llm_sandbox.utils", "llm_sandbox.const", "docker.from_env", "unittest", "patch", "MagicMock", "unittest.main""
+import os\\\\\nimport tarfile\\\\\nimport docker\\\\\nimport io\\\\\nimport tarfile\\\\\nimport docker.models.images\\\\\nimport docker.models.containers\\\\\nimport llm_sandbox.utils\\\\\nimport llm_sandbox.const\\\\\nimport docker.from_env\\\\\nimport unittest\\\\\nimport patch\\\\\nimport MagicMock\\\\\nimport unittest.main

@@ -12,23 +12,16 @@ from llm_sandbox.utils import (
     get_code_file_extension,
     get_code_execution_command,
 )
-from llm_sandbox.const import (
-    SupportedLanguage,
-    SupportedLanguageValues,
-    DefaultImage,
-    NotSupportedLibraryInstallation,
-)
+from llm_sandbox.const import SupportedLanguage, SupportedLanguageValues, DefaultImage, NotSupportedLibraryInstallation
 
 
 class SandboxSession:
-    def __init__(
-        self,
-        image: Optional[str] = None,
-        dockerfile: Optional[str] = None,
-        lang: str = SupportedLanguage.PYTHON,
-        keep_template: bool = False,
-        verbose: bool = True,
-    ):
+    def __init__(self,
+                 image: Optional[str] = None,
+                 dockerfile: Optional[str] = None,
+                 lang: str = SupportedLanguage.PYTHON,
+                 keep_template: bool = False,
+                 verbose: bool = True):
         """
         Create a new sandbox session
         :param image: Docker image to use
@@ -42,8 +35,7 @@ class SandboxSession:
 
         if lang not in SupportedLanguageValues:
             raise ValueError(
-                f"Language {lang} is not supported. Must be one of {SupportedLanguageValues}"
-            )
+                f"Language {lang} is not supported. Must be one of {SupportedLanguageValues}")
 
         if not image and not dockerfile:
             image = DefaultImage.__dict__[lang.upper()]
@@ -129,14 +121,12 @@ class SandboxSession:
     def run(self, code: str, libraries: Optional[List] = None):
         if not self.container:
             raise RuntimeError(
-                "Session is not open. Please call open() method before running code."
-            )
+                "Session is not open. Please call open() method before running code.")
 
         if libraries:
             if self.lang.upper() in NotSupportedLibraryInstallation:
                 raise ValueError(
-                    f"Library installation has not been supported for {self.lang} yet!"
-                )
+                    f"Library installation has not been supported for {self.lang} yet!")
 
             command = get_libraries_installation_command(self.lang, libraries)
             self.execute_command(command)
@@ -146,19 +136,13 @@ class SandboxSession:
             f.write(code)
 
         self.copy_to_runtime(code_file, code_file)
-
-        output = ""
-        commands = get_code_execution_command(self.lang, code_file)
-        for command in commands:
-            output = self.execute_command(command)
-
-        return output
+        result = self.execute_command(get_code_execution_command(self.lang, code_file))
+        return result
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:
             raise RuntimeError(
-                "Session is not open. Please call open() method before copying files."
-            )
+                "Session is not open. Please call open() method before copying files.")
 
         if self.verbose:
             print(f"Copying {self.container.short_id}:{src} to {dest}..")
@@ -174,12 +158,11 @@ class SandboxSession:
     def copy_to_runtime(self, src: str, dest: str):
         if not self.container:
             raise RuntimeError(
-                "Session is not open. Please call open() method before copying files."
-            )
+                "Session is not open. Please call open() method before copying files.")
 
         is_created_dir = False
         directory = os.path.dirname(dest)
-        if directory and not self.container.exec_run(f"test -d {directory}")[0] == 0:
+        if directory:
             self.container.exec_run(f"mkdir -p {directory}")
             is_created_dir = True
 
@@ -201,8 +184,7 @@ class SandboxSession:
 
         if not self.container:
             raise RuntimeError(
-                "Session is not open. Please call open() method before executing commands."
-            )
+                "Session is not open. Please call open() method before executing commands.")
 
         if self.verbose:
             print(f"Executing command: {command}")

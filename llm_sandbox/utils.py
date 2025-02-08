@@ -3,7 +3,7 @@ import docker.errors
 from typing import List, Optional
 
 from docker import DockerClient
-from llm_sandbox.const import SupportedLanguage, NotSupportedLibraryInstallation, SupportedLanguageValues
+from llm_sandbox.const import SupportedLanguage
 
 
 def image_exists(client: DockerClient, image: str) -> bool:
@@ -36,9 +36,9 @@ def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optio
     elif lang == SupportedLanguage.JAVASCRIPT:
         return f"yarn add {' '.join(libraries)}"
     elif lang == SupportedLanguage.CPP:
-        return f"apt-get install {' '.join(libraries)}"
+        return f"g++ -o a.out {' '.join(libraries)} && ./a.out"
     elif lang == SupportedLanguage.GO:
-        return f"go get {' '.join(libraries)}"
+        return f"go run {' '.join(libraries)}"
     elif lang == SupportedLanguage.RUBY:
         return f"gem install {' '.join(libraries)}"
     else:
@@ -67,24 +67,27 @@ def get_code_file_extension(lang: str) -> str:
         raise ValueError(f"Language {lang} is not supported")
 
 
-def get_code_execution_command(lang: str, code_file: str) -> str:
+def get_code_execution_command(lang: str, code_file: str) -> List[str]:
     """
     Get the command to execute the code
     :param lang: Programming language
     :param code_file: Path to the code file
-    :return: Execution command
+    :return: List of execution commands
     """
+    commands = []
     if lang == SupportedLanguage.PYTHON:
-        return f"python {code_file}"
+        commands.append(f"python {code_file}")
     elif lang == SupportedLanguage.JAVA:
-        return f"java {code_file}"
+        commands.append(f"javac {code_file}")
+        commands.append(f"java {code_file.replace('.java', '')}")
     elif lang == SupportedLanguage.JAVASCRIPT:
-        return f"node {code_file}"
+        commands.append(f"node {code_file}")
     elif lang == SupportedLanguage.CPP:
-        return f"./{code_file}"
+        commands.append(f"g++ -o a.out {code_file} && ./a.out")
     elif lang == SupportedLanguage.GO:
-        return f"go run {code_file}"
+        commands.append(f"go run {code_file}")
     elif lang == SupportedLanguage.RUBY:
-        return f"ruby {code_file}"
+        commands.append(f"ruby {code_file}")
     else:
         raise ValueError(f"Language {lang} is not supported")
+    return commands

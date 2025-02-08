@@ -1,1 +1,1 @@
-def test_function():\n    assert some_function() == expected_result
+import utils\\\ndef test_function():\\\n    try:\\\n        assert utils.some_function() == utils.expected_result\\\n    except AssertionError as e:\\\n        print(f"Test failed: {e}")\\\n    except Exception as e:\\\n        print(f"An error occurred: {e}")

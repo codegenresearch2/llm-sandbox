@@ -149,7 +149,7 @@ class SandboxSession:
         output = ""
         for command in commands:
             result = self.execute_command(command)
-            output += result[1]  # Extract the output string from the tuple
+            output += result  # Directly concatenate the output string
 
         return output
 
@@ -218,7 +218,7 @@ class SandboxSession:
             if self.verbose:
                 print(chunk_str, end="")
 
-        return (0, output)  # Return a tuple with the exit code and the output
+        return output  # Return only the output string
 
     def __enter__(self):
         self.open()

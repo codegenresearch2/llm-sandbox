@@ -140,10 +140,9 @@ class SandboxSession:
         with open(code_file, "w") as f:
             f.write(code)
 
-        # Initialize output variable
-        output = ""
         # Execute the code
         result = self.container.exec_run(get_code_execution_command(self.lang, code_file), stream=True)
+        output = ""
         for chunk in result.output:
             output += chunk.decode("utf-8")
 

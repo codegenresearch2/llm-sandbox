@@ -18,8 +18,8 @@ def image_exists(client: DockerClient, image: str) -> bool:
         return True
     except docker.errors.ImageNotFound:
         return False
-    except Exception as e:
-        raise e
+    except Exception:
+        return False
 
 
 def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optional[str]:
@@ -83,8 +83,8 @@ def get_code_execution_command(lang: str, code_file: str) -> List[str]:
     elif lang == SupportedLanguage.JAVASCRIPT:
         commands.append(f"node {code_file}")
     elif lang == SupportedLanguage.CPP:
-        compile_command = f"g++ -o {code_file.replace('.cpp', '')} {code_file}"
-        run_command = f"./{code_file.replace('.cpp', '')}"
+        compile_command = f"g++ -o a.out {code_file}"
+        run_command = f"./a.out"
         commands.extend([compile_command, run_command])
     elif lang == SupportedLanguage.GO:
         commands.append(f"go run {code_file}")
@@ -93,75 +93,3 @@ def get_code_execution_command(lang: str, code_file: str) -> List[str]:
     else:
         raise ValueError(f"Language {lang} is not supported")
     return commands
-
-
-def run_code_in_loop(lang: str, code: str, libraries: List[str] = None):
-    """
-    Run code in a loop with consistent handling of multiple execution commands
-    :param lang: Programming language
-    :param code: Code to run
-    :param libraries: List of libraries to install
-    """
-    if libraries is None:
-        libraries = []
-
-    code_file_extension = get_code_file_extension(lang)
-    with open(f"temp_code.{code_file_extension}", "w") as f:
-        f.write(code)
-
-    execution_commands = get_code_execution_command(lang, f"temp_code.{code_file_extension}")
-    if get_libraries_installation_command(lang, libraries) is not None:
-        install_command = get_libraries_installation_command(lang, libraries)
-        print(f"Installing libraries: {install_command}")
-
-    for command in execution_commands:
-        print(f"Executing command: {command}")
-        # Execute the command
-
-
-def test_directory_existence(directory_path: str):
-    """
-    Test command to verify directory existence
-    :param directory_path: Path to the directory
-    """
-    import os
-    if os.path.exists(directory_path):
-        print(f"Directory {directory_path} exists.")
-    else:
-        print(f"Directory {directory_path} does not exist.")
-
-
-# Example usage
-if __name__ == "__main__":
-    python_code = """
-    print('Hello, World!')
-    import numpy as np
-    print(np.random.rand())
-    """
-    run_code_in_loop(SupportedLanguage.PYTHON, python_code, libraries=["numpy"])
-
-    java_code = """
-    public class Main {
-        public static void main(String[] args) {
-            System.out.println("Hello, World!");
-        }
-    }
-    """
-    run_code_in_loop(SupportedLanguage.JAVA, java_code)
-
-    javascript_code = """
-    console.log('Hello, World!');
-    const axios = require('axios');
-    axios.get('https://jsonplaceholder.typicode.com/posts/1')
-        .then(response => console.log(response.data));
-    """
-    run_code_in_loop(SupportedLanguage.JAVASCRIPT, javascript_code, libraries=["axios"])
-
-    cpp_code = """
-    #include <iostream>
-    int main() {
-        std::cout << "Hello, World!" << std::endl;
-        return 0;
-    }
-    """
-    run_code_in_loop(SupportedLanguage.CPP, cpp_code)

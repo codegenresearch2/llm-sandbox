@@ -27,14 +27,22 @@ def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optio
     Get the command to install libraries for the given language
     :param lang: Programming language
     :param libraries: List of libraries
-    :return: Installation command
+    :return: Installation command or None if the language is not supported
     """
     if lang == SupportedLanguage.PYTHON:
         return f"pip install {' '.join(libraries)}"
-    elif lang in NotSupportedLibraryInstallation:
-        return None
+    elif lang == SupportedLanguage.JAVA:
+        return "mvn install:install-file -Dfile={}".format(' '.join(libraries))
+    elif lang == SupportedLanguage.JAVASCRIPT:
+        return f"yarn add {' '.join(libraries)}"
+    elif lang == SupportedLanguage.CPP:
+        return f"apt-get install {' '.join(libraries)}"
+    elif lang == SupportedLanguage.GO:
+        return f"go get {' '.join(libraries)}"
+    elif lang == SupportedLanguage.RUBY:
+        return f"gem install {' '.join(libraries)}"
     else:
-        raise ValueError(f"Language {lang} is not supported for library installation")
+        return None
 
 
 def get_code_file_extension(lang: str) -> str:
@@ -59,25 +67,25 @@ def get_code_file_extension(lang: str) -> str:
         raise ValueError(f"Language {lang} is not supported")
 
 
-def get_code_execution_command(lang: str, code_file: str) -> str:
+def get_code_execution_command(lang: str, code_file: str) -> List[str]:
     """
     Get the command to execute the code
     :param lang: Programming language
     :param code_file: Path to the code file
-    :return: Execution command
+    :return: List of execution commands
     """
     if lang == SupportedLanguage.PYTHON:
-        return f"python {code_file}"
+        return ["python", code_file]
     elif lang == SupportedLanguage.JAVA:
-        return f"java {code_file}"
+        return ["java", code_file]
     elif lang == SupportedLanguage.JAVASCRIPT:
-        return f"node {code_file}"
+        return ["node", code_file]
     elif lang == SupportedLanguage.CPP:
-        return f"./{code_file}"
+        return ["./" + code_file]
     elif lang == SupportedLanguage.GO:
-        return f"go run {code_file}"
+        return ["go", "run", code_file]
     elif lang == SupportedLanguage.RUBY:
-        return f"ruby {code_file}"
+        return ["ruby", code_file]
     else:
         raise ValueError(f"Language {lang} is not supported")
 
@@ -96,13 +104,14 @@ def run_code_in_loop(lang: str, code: str, libraries: List[str] = None):
     with open(f"temp_code.{code_file_extension}", "w") as f:
         f.write(code)
 
-    execution_command = get_code_execution_command(lang, f"temp_code.{code_file_extension}")
+    execution_commands = get_code_execution_command(lang, f"temp_code.{code_file_extension}")
     if get_libraries_installation_command(lang, libraries) is not None:
         install_command = get_libraries_installation_command(lang, libraries)
         print(f"Installing libraries: {install_command}")
 
-    print(f"Executing code: {execution_command}")
-    # Execute the code
+    for command in execution_commands:
+        print(f"Executing command: {command}")
+        # Execute the command
 
 
 def test_directory_existence(directory_path: str):

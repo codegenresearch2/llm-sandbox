@@ -136,13 +136,9 @@ class SandboxSession:
             command = get_libraries_installation_command(self.lang, libraries)
             self.execute_command(command)
 
-        code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
-        with open(code_file, "w") as f:
-            f.write(code)
-
-        self.copy_to_runtime(code_file, code_file)
-        result = self.execute_command(get_code_execution_command(self.lang, code_file))
-        return result
+        commands = get_code_execution_command(self.lang, code)
+        for command in commands:
+            self.execute_command(command)
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:
@@ -167,15 +163,11 @@ class SandboxSession:
                 "Session is not open. Please call open() method before copying files."
             )
 
-        is_created_dir = False
         directory = os.path.dirname(dest)
-        if directory:
+        if directory and not self.container.exec_run(f"test -d {directory}").exit_code == 0:
             self.container.exec_run(f"mkdir -p {directory}")
-            is_created_dir = True
 
         if self.verbose:
-            if is_created_dir:
-                print(f"Creating directory {self.container.short_id}:{directory}")
             print(f"Copying {src} to {self.container.short_id}:{dest}..")
 
         tarstream = io.BytesIO()

@@ -15,7 +15,7 @@ def run_python_code():
         )
         print(output)
 
-        session.execute_command(get_libraries_installation_command(SupportedLanguage.PYTHON, ["pandas"]))
+        session.execute_command("pip install pandas")
         output = session.run("import pandas as pd\nprint(pd.__version__)")
         print(output)
 

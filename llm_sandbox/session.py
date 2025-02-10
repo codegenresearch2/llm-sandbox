@@ -140,11 +140,17 @@ class SandboxSession:
         with open(code_file, "w") as f:
             f.write(code)
 
+        # Copy the code file to the container's file system
+        self.copy_to_runtime(code_file, code_file)
+
+        # Get the list of commands to execute the code
+        commands = get_code_execution_command(self.lang, code_file)
+
         # Execute the code
-        result = self.container.exec_run(get_code_execution_command(self.lang, code_file), stream=True)
         output = ""
-        for chunk in result.output:
-            output += chunk.decode("utf-8")
+        for command in commands:
+            result = self.execute_command(command)
+            output += result
 
         return output
 

@@ -67,7 +67,7 @@ def get_code_file_extension(lang: str) -> str:
         raise ValueError(f"Language {lang} is not supported")
 
 
-def get_code_execution_command(lang: str, code_file: str) -> str:
+def get_code_execution_command(lang: str, code_file: str) -> List[str]:
     """
     Get the command to execute the code
     :param lang: Programming language
@@ -75,17 +75,17 @@ def get_code_execution_command(lang: str, code_file: str) -> str:
     :return: Execution command
     """
     if lang == SupportedLanguage.PYTHON:
-        return f"python {code_file}"
+        return ["python", code_file]
     elif lang == SupportedLanguage.JAVA:
-        return f"java {code_file}"
+        return ["javac", code_file]
     elif lang == SupportedLanguage.JAVASCRIPT:
-        return f"node {code_file}"
+        return ["node", code_file]
     elif lang == SupportedLanguage.CPP:
-        return f"./{code_file}"
+        return ["g++", code_file, "-o", "output"]
     elif lang == SupportedLanguage.GO:
-        return f"go run {code_file}"
+        return ["go", "run", code_file]
     elif lang == SupportedLanguage.RUBY:
-        return f"ruby {code_file}"
+        return ["ruby", code_file]
     else:
         raise ValueError(f"Language {lang} is not supported")
 
@@ -104,13 +104,14 @@ def run_code_in_loop(lang: str, code: str, libraries: List[str] = None):
     with open(f"temp_code.{code_file_extension}", "w") as f:
         f.write(code)
 
-    execution_command = get_code_execution_command(lang, f"temp_code.{code_file_extension}")
+    execution_commands = get_code_execution_command(lang, f"temp_code.{code_file_extension}")
     if get_libraries_installation_command(lang, libraries) is not None:
         install_command = get_libraries_installation_command(lang, libraries)
         print(f"Installing libraries: {install_command}")
 
-    print(f"Executing command: {execution_command}")
-    # Execute the command
+    for command in execution_commands:
+        print(f"Executing command: {command}")
+        # Execute the command
 
 
 def test_directory_existence(directory_path: str):
@@ -150,3 +151,12 @@ if __name__ == "__main__":
         .then(response => console.log(response.data));
     """
     run_code_in_loop(SupportedLanguage.JAVASCRIPT, javascript_code, libraries=["axios"])
+
+    cpp_code = """
+    #include <iostream>
+    int main() {
+        std::cout << "Hello, World!" << std::endl;
+        return 0;
+    }
+    """
+    run_code_in_loop(SupportedLanguage.CPP, cpp_code)

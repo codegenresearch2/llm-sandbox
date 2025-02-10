@@ -140,7 +140,6 @@ class SandboxSession:
         with open(code_file, "w") as f:
             f.write(code)
 
-        # Copy the code file to the container's file system
         self.copy_to_runtime(code_file, code_file)
 
         # Get the list of commands to execute the code

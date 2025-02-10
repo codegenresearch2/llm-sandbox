@@ -1,4 +1,8 @@
 from llm_sandbox import SandboxSession
+from llm_sandbox.utils import get_libraries_installation_command, get_code_execution_command
+from llm_sandbox.const import SupportedLanguage, NotSupportedLibraryInstallation, SupportedLanguageValues
+from os import path, makedirs
+from typing import List, Optional
 
 
 def run_python_code():
@@ -11,7 +15,7 @@ def run_python_code():
         )
         print(output)
 
-        session.execute_command("pip install pandas")
+        session.execute_command(get_libraries_installation_command(SupportedLanguage.PYTHON, ["pandas"]))
         output = session.run("import pandas as pd\nprint(pd.__version__)")
         print(output)
 

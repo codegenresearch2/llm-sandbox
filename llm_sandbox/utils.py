@@ -1,6 +1,6 @@
 import docker
 import docker.errors
-from typing import List
+from typing import Optional, List
 
 from docker import DockerClient
 from llm_sandbox.const import SupportedLanguage
@@ -24,12 +24,12 @@ def image_exists(client: DockerClient, image: str) -> bool:
 
 def get_libraries_installation_command(
     lang: str, libraries: List[str]
-) -> str:
+) -> Optional[str]:
     """
     Get the command to install libraries for the given language
     :param lang: Programming language
     :param libraries: List of libraries
-    :return: Installation command
+    :return: Installation command or None if the language is not supported
     """
     if lang == SupportedLanguage.PYTHON:
         return f"pip install {' '.join(libraries)}"
@@ -44,7 +44,7 @@ def get_libraries_installation_command(
     elif lang == SupportedLanguage.RUBY:
         return f"gem install {' '.join(libraries)}"
     else:
-        raise ValueError(f"Language {lang} is not supported")
+        return None
 
 
 def get_code_file_extension(lang: str) -> str:
@@ -69,24 +69,24 @@ def get_code_file_extension(lang: str) -> str:
         raise ValueError(f"Language {lang} is not supported")
 
 
-def get_code_execution_command(lang: str, code_file: str) -> List[str]:
+def get_code_execution_command(lang: str, code_file: str) -> str:
     """
     Get the command to execute the code
     :param lang: Programming language
     :param code_file: Path to the code file
-    :return: List of execution commands
+    :return: Execution command as a single string
     """
     if lang == SupportedLanguage.PYTHON:
-        return ["python", code_file]
+        return f"python {code_file}"
     elif lang == SupportedLanguage.JAVA:
-        return ["javac", code_file]
+        return f"javac {code_file}"
     elif lang == SupportedLanguage.JAVASCRIPT:
-        return ["node", code_file]
+        return f"node {code_file}"
     elif lang == SupportedLanguage.CPP:
-        return ["g++", "-o", "a.out", code_file, "&&", "./a.out"]
+        return f"g++ -o a.out {code_file} && ./a.out"
     elif lang == SupportedLanguage.GO:
-        return ["go", "run", code_file]
+        return f"go run {code_file}"
     elif lang == SupportedLanguage.RUBY:
-        return ["ruby", code_file]
+        return f"ruby {code_file}"
     else:
         raise ValueError(f"Language {lang} is not supported")

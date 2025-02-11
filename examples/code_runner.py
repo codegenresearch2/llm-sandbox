@@ -1,5 +1,6 @@
 from llm_sandbox import SandboxSession
-
+from llm_sandbox.utils import get_libraries_installation_command, get_code_execution_command
+from llm_sandbox.const import SupportedLanguage, NotSupportedLibraryInstallation
 
 def run_python_code():
     with SandboxSession(lang="python", keep_template=True, verbose=True) as session:
@@ -11,7 +12,7 @@ def run_python_code():
         )
         print(output)
 
-        session.execute_command("pip install pandas")
+        session.execute_command(get_libraries_installation_command(SupportedLanguage.PYTHON, ["pandas"]))
         output = session.run("import pandas as pd\nprint(pd.__version__)")
         print(output)
 
@@ -78,24 +79,25 @@ def run_cpp_code():
         print(output)
 
         # run with libraries
-        output = session.run(
-            """
-            #include <iostream>
-            #include <vector>
-            #include <algorithm>
-            int main() {
-                std::vector<int> v = {1, 2, 3, 4, 5};
-                std::reverse(v.begin(), v.end());
-                for (int i : v) {
-                    std::cout << i << " ";
+        if "libstdc++" not in NotSupportedLibraryInstallation:
+            output = session.run(
+                """
+                #include <iostream>
+                #include <vector>
+                #include <algorithm>
+                int main() {
+                    std::vector<int> v = {1, 2, 3, 4, 5};
+                    std::reverse(v.begin(), v.end());
+                    for (int i : v) {
+                        std::cout << i << " ";
+                    }
+                    std::cout << std::endl;
+                    return 0;
                 }
-                std::cout << std::endl;
-                return 0;
-            }
-            """,
-            libraries=["libstdc++"],
-        )
-        print(output)
+                """,
+                libraries=["libstdc++"],
+            )
+            print(output)
 
 
 if __name__ == "__main__":

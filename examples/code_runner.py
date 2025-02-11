@@ -83,6 +83,7 @@ def run_cpp_code():
         )
         print(output)
 
+        # run with libraries
         output = session.run(
             """
             #include <iostream>
@@ -98,7 +99,6 @@ def run_cpp_code():
                 return 0;
             }
             """,
-            libraries=["libstdc++"],
         )
         print(output)
 

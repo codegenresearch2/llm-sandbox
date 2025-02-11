@@ -5,7 +5,7 @@ def run_code(lang: str, code: str, libraries: list = None):
         if libraries:
             session.execute_command(f"pip install {' '.join(libraries)}")
 
-        output = session.run(code, libraries=libraries)
+        output = session.run(code)
         print(output)
 
 def run_python_code():

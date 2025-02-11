@@ -141,8 +141,12 @@ class SandboxSession:
             f.write(code)
 
         self.copy_to_runtime(code_file, code_file)
-        result = self.execute_command(get_code_execution_command(self.lang, code_file))
-        return result
+        results = []
+        for command in get_code_execution_command(self.lang, code_file):
+            result = self.execute_command(command)
+            results.append(result)
+
+        return "\n".join(results)
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:

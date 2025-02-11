@@ -132,12 +132,15 @@ class SandboxSession:
                     f"Library installation has not been supported for {self.lang} yet!"
                 )
 
-            # Install libraries
+            # Construct a single command to install libraries
             install_command = get_libraries_installation_command(self.lang, libraries)
             self.execute_command(install_command)
 
-        # Create a temporary file for the code
-        code_file = "/tmp/code.py"
+        # Get the file extension for the code file
+        code_file_extension = get_code_file_extension(self.lang)
+        code_file = f"/tmp/code.{code_file_extension}"
+
+        # Write the code to a temporary file
         with open(code_file, "w") as f:
             f.write(code)
 
@@ -147,14 +150,18 @@ class SandboxSession:
         # Get the list of commands to execute the code
         commands = get_code_execution_command(self.lang, code)
 
-        # Execute all commands
+        # Initialize output variable
+        output = ""
+
+        # Execute all commands and collect output
         for command in commands:
-            output = self.execute_command(command)
+            result = self.execute_command(command)
+            output += result + "\n"
 
         # Clean up the temporary code file
         os.remove(code_file)
 
-        return (0, "Output")  # Placeholder return value
+        return (0, output.strip())
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:

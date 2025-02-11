@@ -133,16 +133,23 @@ class SandboxSession:
                     f"Library installation has not been supported for {self.lang} yet!"
                 )
 
-            command = get_libraries_installation_command(self.lang, libraries)
-            self.execute_command(command)
+            for command in get_libraries_installation_command(self.lang, libraries):
+                self.execute_command(command)
 
-        code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
-        with open(code_file, "w") as f:
-            f.write(code)
+        code_files = []
+        for idx, code_chunk in enumerate(code.split(";")):
+            code_file = f"/tmp/code_{idx}.{get_code_file_extension(self.lang)}"
+            with open(code_file, "w") as f:
+                f.write(code_chunk.strip())
+            code_files.append(code_file)
+            self.copy_to_runtime(code_file, code_file)
 
-        self.copy_to_runtime(code_file, code_file)
-        result = self.execute_command(get_code_execution_command(self.lang, code_file))
-        return result
+        for code_file in code_files:
+            result = self.execute_command(get_code_execution_command(self.lang, code_file))
+            if self.verbose:
+                print(result)
+
+        return "\n".join([str(result) for result in results])
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:

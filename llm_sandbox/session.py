@@ -132,7 +132,7 @@ class SandboxSession:
                     f"Library installation has not been supported for {self.lang} yet!"
                 )
 
-            # Construct a single command to install libraries
+            # Construct and execute the command to install libraries
             install_command = get_libraries_installation_command(self.lang, libraries)
             self.execute_command(install_command)
 

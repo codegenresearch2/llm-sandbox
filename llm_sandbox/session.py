@@ -61,7 +61,7 @@ class SandboxSession:
         if self.dockerfile:
             self.path = os.path.dirname(self.dockerfile)
             if self.verbose:
-                print(f"{self.path}: Building docker image from {self.dockerfile}")
+                print(f"Building docker image from {self.dockerfile}")
                 print(warning_str)
 
             self.image, _ = self.client.images.build(
@@ -136,11 +136,13 @@ class SandboxSession:
         with open(code_file, "w") as f:
             f.write(code)
 
+        output = ""
         commands = get_code_execution_command(self.lang, code_file)
         for command in commands:
             result = self.execute_command(command)
             if result is not None:
-                return result
+                output += result
+        return output
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:
@@ -168,6 +170,8 @@ class SandboxSession:
         directory = os.path.dirname(dest)
         if directory and not self.container.exec_run(f"test -d {directory}").exit_code == 0:
             self.container.exec_run(f"mkdir -p {directory}")
+            if self.verbose:
+                print(f"Creating directory {self.container.short_id}:{directory}")
 
         if self.verbose:
             print(f"Copying {src} to {self.container.short_id}:{dest}..")

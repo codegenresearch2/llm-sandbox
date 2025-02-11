@@ -1,81 +1,56 @@
 from llm_sandbox import SandboxSession
-from llm_sandbox.utils import get_libraries_installation_command, get_code_execution_command
+from llm_sandbox.utils import get_libraries_installation_command, get_code_file_extension
 from llm_sandbox.const import SupportedLanguage
 
-def run_code(lang: str, code: str, libraries: list = None):
-    with SandboxSession(lang=lang, keep_template=True, verbose=True) as session:
-        if libraries:
-            install_command = get_libraries_installation_command(lang, libraries)
-            session.execute_command(install_command)
-
-        output = session.run(code)
+def run_python_code():
+    with SandboxSession(lang=SupportedLanguage.PYTHON, keep_template=True, verbose=True) as session:
+        output = session.run("print('Hello, World!')")
         print(output)
 
-        execution_commands = get_code_execution_command(lang, "main." + session.get_code_file_extension())
-        for command in execution_commands:
-            session.execute_command(command)
+        session.execute_command(get_libraries_installation_command(SupportedLanguage.PYTHON, ["numpy"]))
+        output = session.run("import numpy as np\nprint(np.random.rand())")
+        print(output)
 
-def run_python_code():
-    run_code(
-        lang=SupportedLanguage.PYTHON,
-        code="print('Hello, World!')"
-    )
-
-    run_code(
-        lang=SupportedLanguage.PYTHON,
-        code="import numpy as np\nprint(np.random.rand())",
-        libraries=["numpy"]
-    )
-
-    run_code(
-        lang=SupportedLanguage.PYTHON,
-        code="import pandas as pd\nprint(pd.__version__)",
-        libraries=["pandas"]
-    )
+        session.execute_command(get_libraries_installation_command(SupportedLanguage.PYTHON, ["pandas"]))
+        output = session.run("import pandas as pd\nprint(pd.__version__)")
+        print(output)
 
 def run_java_code():
-    run_code(
-        lang=SupportedLanguage.JAVA,
-        code="""
+    with SandboxSession(lang=SupportedLanguage.JAVA, keep_template=True, verbose=True) as session:
+        output = session.run("""
         public class Main {
             public static void main(String[] args) {
                 System.out.println("Hello, World!");
             }
         }
-        """
-    )
+        """)
+        print(output)
 
 def run_javascript_code():
-    run_code(
-        lang=SupportedLanguage.JAVASCRIPT,
-        code="console.log('Hello, World!')"
-    )
+    with SandboxSession(lang=SupportedLanguage.JAVASCRIPT, keep_template=True, verbose=True) as session:
+        output = session.run("console.log('Hello, World!')")
+        print(output)
 
-    run_code(
-        lang=SupportedLanguage.JAVASCRIPT,
-        code="""
+        session.execute_command(get_libraries_installation_command(SupportedLanguage.JAVASCRIPT, ["axios"]))
+        output = session.run("""
         const axios = require('axios');
         axios.get('https://jsonplaceholder.typicode.com/posts/1')
             .then(response => console.log(response.data));
-        """,
-        libraries=["axios"]
-    )
+        """)
+        print(output)
 
 def run_cpp_code():
-    run_code(
-        lang=SupportedLanguage.CPP,
-        code="""
+    with SandboxSession(lang=SupportedLanguage.CPP, keep_template=True, verbose=True) as session:
+        output = session.run("""
         #include <iostream>
         int main() {
             std::cout << "Hello, World!" << std::endl;
             return 0;
         }
-        """
-    )
+        """)
+        print(output)
 
-    run_code(
-        lang=SupportedLanguage.CPP,
-        code="""
+        output = session.run("""
         #include <iostream>
         #include <vector>
         int main() {
@@ -86,12 +61,11 @@ def run_cpp_code():
             std::cout << std::endl;
             return 0;
         }
-        """
-    )
+        """)
+        print(output)
 
-    run_code(
-        lang=SupportedLanguage.CPP,
-        code="""
+        session.execute_command(get_libraries_installation_command(SupportedLanguage.CPP, ["libstdc++"]))
+        output = session.run("""
         #include <iostream>
         #include <vector>
         #include <algorithm>
@@ -104,9 +78,8 @@ def run_cpp_code():
             std::cout << std::endl;
             return 0;
         }
-        """,
-        libraries=["libstdc++"]
-    )
+        """)
+        print(output)
 
 if __name__ == "__main__":
     run_cpp_code()

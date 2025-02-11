@@ -49,7 +49,6 @@ def run_javascript_code():
             axios.get('https://jsonplaceholder.typicode.com/posts/1')
                 .then(response => console.log(response.data));
             """,
-            libraries=["axios"],
         )
         print(output)
 

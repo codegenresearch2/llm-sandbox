@@ -207,7 +207,7 @@ class SandboxSession:
             if self.verbose:
                 print(chunk_str, end="")
 
-        return (0, output) if output else None
+        return output if output else None
 
     def __enter__(self):
         self.open()

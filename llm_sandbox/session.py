@@ -146,7 +146,7 @@ class SandboxSession:
             result = self.execute_command(command)
             output += result[1] + "\n"  # Append only the output string
 
-        return output.strip()
+        return (0, output.strip())
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:

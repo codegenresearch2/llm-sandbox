@@ -144,7 +144,7 @@ class SandboxSession:
         output = ""
         for command in get_code_execution_command(self.lang, code_file):
             result = self.execute_command(command)
-            output += result.strip() + "\n"  # Append only the output string
+            output += result + "\n"  # Append the output string with newline
 
         return output.strip()
 

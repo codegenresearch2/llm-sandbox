@@ -12,13 +12,7 @@ from llm_sandbox.utils import (
     get_code_file_extension,
     get_code_execution_command,
 )
-from llm_sandbox.const import (
-    SupportedLanguage,
-    SupportedLanguageValues,
-    DefaultImage,
-    NotSupportedLibraryInstallation,
-)
-
+from llm_sandbox.const import SupportedLanguage, SupportedLanguageValues, DefaultImage, NotSupportedLibraryInstallation
 
 class SandboxSession:
     def __init__(
@@ -29,14 +23,6 @@ class SandboxSession:
         keep_template: bool = False,
         verbose: bool = True,
     ):
-        """
-        Create a new sandbox session
-        :param image: Docker image to use
-        :param dockerfile: Path to the Dockerfile, if image is not provided
-        :param lang: Language of the code
-        :param keep_template: if True, the image and container will not be removed after the session ends
-        :param verbose: if True, print messages
-        """
         if image and dockerfile:
             raise ValueError("Only one of image or dockerfile should be provided")
 
@@ -59,10 +45,7 @@ class SandboxSession:
         self.verbose = verbose
 
     def open(self):
-        warning_str = (
-            "Since the `keep_template` flag is set to True the docker image will not be removed after the session ends "
-            "and remains for future use."
-        )
+        warning_str = "Since the `keep_template` flag is set to True, the docker image will not be removed after the session ends and remains for future use."
         if self.dockerfile:
             self.path = os.path.dirname(self.dockerfile)
             if self.verbose:
@@ -102,16 +85,9 @@ class SandboxSession:
             self.container = None
 
         if self.is_create_template and not self.keep_template:
-            # check if the image is used by any other container
             containers = self.client.containers.list(all=True)
-            image_id = (
-                self.image.id
-                if isinstance(self.image, Image)
-                else self.client.images.get(self.image).id
-            )
-            image_in_use = any(
-                container.image.id == image_id for container in containers
-            )
+            image_id = self.image.id if isinstance(self.image, Image) else self.client.images.get(self.image).id
+            image_in_use = any(container.image.id == image_id for container in containers)
 
             if not image_in_use:
                 if isinstance(self.image, str):
@@ -122,24 +98,19 @@ class SandboxSession:
                     raise ValueError("Invalid image type")
             else:
                 if self.verbose:
-                    print(
-                        f"Image {self.image.tags[-1]} is in use by other containers. Skipping removal.."
-                    )
+                    print(f"Image {self.image.tags[-1]} is in use by other containers. Skipping removal..")
 
     def run(self, code: str, libraries: Optional[List] = None):
         if not self.container:
-            raise RuntimeError(
-                "Session is not open. Please call open() method before running code."
-            )
+            raise RuntimeError("Session is not open. Please call open() method before running code.")
+
+        commands = []
 
         if libraries:
             if self.lang.upper() in NotSupportedLibraryInstallation:
-                raise ValueError(
-                    f"Library installation has not been supported for {self.lang} yet!"
-                )
+                raise ValueError(f"Library installation has not been supported for {self.lang} yet!")
 
-            command = get_libraries_installation_command(self.lang, libraries)
-            self.execute_command(command)
+            commands.append(get_libraries_installation_command(self.lang, libraries))
 
         code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
         with open(code_file, "w") as f:
@@ -147,18 +118,17 @@ class SandboxSession:
 
         self.copy_to_runtime(code_file, code_file)
 
-        output = ""
-        commands = get_code_execution_command(self.lang, code_file)
-        for command in commands:
-            output = self.execute_command(command)
+        if self.lang == SupportedLanguage.CPP:
+            commands.append(f"g++ -o /tmp/executable {code_file}")
+            commands.append("/tmp/executable")
+        else:
+            commands.append(get_code_execution_command(self.lang, code_file))
 
-        return output
+        return commands
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:
-            raise RuntimeError(
-                "Session is not open. Please call open() method before copying files."
-            )
+            raise RuntimeError("Session is not open. Please call open() method before copying files.")
 
         if self.verbose:
             print(f"Copying {self.container.short_id}:{src} to {dest}..")
@@ -173,13 +143,11 @@ class SandboxSession:
 
     def copy_to_runtime(self, src: str, dest: str):
         if not self.container:
-            raise RuntimeError(
-                "Session is not open. Please call open() method before copying files."
-            )
+            raise RuntimeError("Session is not open. Please call open() method before copying files.")
 
         is_created_dir = False
         directory = os.path.dirname(dest)
-        if directory and not self.container.exec_run(f"test -d {directory}")[0] == 0:
+        if directory:
             self.container.exec_run(f"mkdir -p {directory}")
             is_created_dir = True
 
@@ -200,9 +168,7 @@ class SandboxSession:
             raise ValueError("Command cannot be empty")
 
         if not self.container:
-            raise RuntimeError(
-                "Session is not open. Please call open() method before executing commands."
-            )
+            raise RuntimeError("Session is not open. Please call open() method before executing commands.")
 
         if self.verbose:
             print(f"Executing command: {command}")
@@ -227,3 +193,119 @@ class SandboxSession:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+def run_python_code():
+    with SandboxSession(lang="python", keep_template=True, verbose=True) as session:
+        commands = session.run("print('Hello, World!')")
+        for command in commands:
+            output = session.execute_command(command)
+            print(output)
+
+        commands = session.run(
+            "import numpy as np\nprint(np.random.rand())", libraries=["numpy"]
+        )
+        for command in commands:
+            output = session.execute_command(command)
+            print(output)
+
+        session.execute_command("pip install pandas")
+        commands = session.run("import pandas as pd\nprint(pd.__version__)")
+        for command in commands:
+            output = session.execute_command(command)
+            print(output)
+
+        session.copy_to_runtime("README.md", "/sandbox/data.csv")
+
+def run_java_code():
+    with SandboxSession(lang="java", keep_template=True, verbose=True) as session:
+        commands = session.run(
+            """
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Hello, World!");
+                }
+            }
+            """
+        )
+        for command in commands:
+            output = session.execute_command(command)
+            print(output)
+
+def run_javascript_code():
+    with SandboxSession(lang="javascript", keep_template=True, verbose=True) as session:
+        commands = session.run("console.log('Hello, World!')")
+        for command in commands:
+            output = session.execute_command(command)
+            print(output)
+
+        commands = session.run(
+            """
+            const axios = require('axios');
+            axios.get('https://jsonplaceholder.typicode.com/posts/1')
+                .then(response => console.log(response.data));
+            """,
+            libraries=["axios"],
+        )
+        for command in commands:
+            output = session.execute_command(command)
+            print(output)
+
+def run_cpp_code():
+    with SandboxSession(lang="cpp", keep_template=True, verbose=True) as session:
+        commands = session.run(
+            """
+            #include <iostream>
+            int main() {
+                std::cout << "Hello, World!" << std::endl;
+                return 0;
+            }
+            """
+        )
+        for command in commands:
+            output = session.execute_command(command)
+            print(output)
+
+        commands = session.run(
+            """
+            #include <iostream>
+            #include <vector>
+            int main() {
+                std::vector<int> v = {1, 2, 3, 4, 5};
+                for (int i : v) {
+                    std::cout << i << " ";
+                }
+                std::cout << std::endl;
+                return 0;
+            }
+            """
+        )
+        for command in commands:
+            output = session.execute_command(command)
+            print(output)
+
+        commands = session.run(
+            """
+            #include <iostream>
+            #include <vector>
+            #include <algorithm>
+            int main() {
+                std::vector<int> v = {1, 2, 3, 4, 5};
+                std::reverse(v.begin(), v.end());
+                for (int i : v) {
+                    std::cout << i << " ";
+                }
+                std::cout << std::endl;
+                return 0;
+            }
+            """,
+            libraries=["libstdc++"],
+        )
+        for command in commands:
+            output = session.execute_command(command)
+            print(output)
+
+if __name__ == "__main__":
+    run_python_code()
+    run_java_code()
+    run_javascript_code()
+    run_cpp_code()

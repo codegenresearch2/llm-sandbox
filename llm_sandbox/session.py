@@ -140,9 +140,19 @@ class SandboxSession:
         with open(code_file, "w") as f:
             f.write(code)
 
-        self.copy_to_runtime(code_file, code_file)
-        result = self.execute_command(get_code_execution_command(self.lang, code_file))
-        return result
+        # Initialize output variable
+        output = ""
+
+        # Execute the code file multiple times if necessary
+        while True:
+            result = self.execute_command(get_code_execution_command(self.lang, code_file))
+            output += result
+
+            # Check if the code execution has finished
+            if "Finished" in output:
+                break
+
+        return output
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:

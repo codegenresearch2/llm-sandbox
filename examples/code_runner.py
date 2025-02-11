@@ -9,11 +9,11 @@ def run_code(lang: str, code: str, libraries: list = None):
             session.execute_command(install_command)
 
         if lang == SupportedLanguage.CPP:
-            output = session.run(code)
-            print(output)
+            session.write_code_to_file(code, "main.cpp")
             exec_commands = get_code_execution_command(lang, "main.cpp")
             for command in exec_commands:
-                session.execute_command(command)
+                output = session.execute_command(command)
+                print(output)
         else:
             output = session.run(code)
             print(output)

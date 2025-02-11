@@ -9,30 +9,35 @@ def image_exists(client: DockerClient, image: str) -> bool:
     """Check if a Docker image exists.
 
     Args:
-    client (DockerClient): Docker client.
-    image (str): Docker image.
+        client (DockerClient): Docker client.
+        image (str): Docker image.
 
     Returns:
-    bool: True if the image exists, False otherwise.
+        bool: True if the image exists, False otherwise.
+
+    Raises:
+        Exception: If an unexpected error occurs.
     """
     try:
         client.images.get(image)
         return True
     except docker.errors.ImageNotFound:
         return False
+    except Exception as e:
+        raise Exception(f"An unexpected error occurred: {str(e)}")
 
 def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optional[str]:
     """Get the command to install libraries for the given language.
 
     Args:
-    lang (str): Programming language.
-    libraries (List[str]): List of libraries.
+        lang (str): Programming language.
+        libraries (List[str]): List of libraries.
 
     Returns:
-    Optional[str]: Installation command.
+        Optional[str]: Installation command.
 
     Raises:
-    ValueError: If the language is not supported.
+        ValueError: If the language is not supported.
     """
     if lang == SupportedLanguage.PYTHON:
         return f"pip install {' '.join(libraries)}"
@@ -53,13 +58,13 @@ def get_code_file_extension(lang: str) -> str:
     """Get the file extension for the given language.
 
     Args:
-    lang (str): Programming language.
+        lang (str): Programming language.
 
     Returns:
-    str: File extension.
+        str: File extension.
 
     Raises:
-    ValueError: If the language is not supported.
+        ValueError: If the language is not supported.
     """
     if lang == SupportedLanguage.PYTHON:
         return "py"
@@ -80,14 +85,14 @@ def get_code_execution_command(lang: str, code_file: str) -> List[str]:
     """Get the command to execute the code.
 
     Args:
-    lang (str): Programming language.
-    code_file (str): Path to the code file.
+        lang (str): Programming language.
+        code_file (str): Path to the code file.
 
     Returns:
-    List[str]: Execution commands.
+        List[str]: Execution commands.
 
     Raises:
-    ValueError: If the language is not supported.
+        ValueError: If the language is not supported.
     """
     if lang == SupportedLanguage.PYTHON:
         return [f"python {code_file}"]
@@ -108,10 +113,10 @@ def test_directory_existence(directory: str) -> bool:
     """Test if a directory exists.
 
     Args:
-    directory (str): Directory path.
+        directory (str): Directory path.
 
     Returns:
-    bool: True if the directory exists, False otherwise.
+        bool: True if the directory exists, False otherwise.
     """
     import os
     return os.path.isdir(directory)
@@ -120,16 +125,16 @@ def run_code(lang: str, code: str, libraries: List[str] = None, test_directory: 
     """Run the code with the given language and libraries.
 
     Args:
-    lang (str): Programming language.
-    code (str): Code to be executed.
-    libraries (List[str], optional): List of libraries to be installed. Defaults to None.
-    test_directory (str, optional): Directory to be tested for existence. Defaults to None.
+        lang (str): Programming language.
+        code (str): Code to be executed.
+        libraries (List[str], optional): List of libraries to be installed. Defaults to None.
+        test_directory (str, optional): Directory to be tested for existence. Defaults to None.
 
     Returns:
-    str: Output of the code execution.
+        str: Output of the code execution.
 
     Raises:
-    ValueError: If the test directory does not exist.
+        ValueError: If the test directory does not exist.
     """
     if libraries is None:
         libraries = []

@@ -107,7 +107,7 @@ class SandboxSession:
                 if self.verbose:
                     print(f"Image {self.image.tags[-1]} is in use by other containers. Skipping removal...")
 
-    def run(self, commands: List[str], libraries: Optional[List] = None):
+    def run(self, code: str, libraries: Optional[List] = None):
         if not self.container:
             raise RuntimeError("Session is not open. Please call open() method before running code.")
 
@@ -118,18 +118,14 @@ class SandboxSession:
             command = get_libraries_installation_command(self.lang, libraries)
             self.execute_command(command)
 
-        output_list = []
-        for command in commands:
-            code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
-            with open(code_file, "w") as f:
-                f.write(command)
+        code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
+        with open(code_file, "w") as f:
+            f.write(code)
 
-            self.copy_to_runtime(code_file, code_file)
-            command = get_code_execution_command(self.lang, code_file)
-            output = self.execute_command(command)
-            output_list.append(output)
-
-        return output_list
+        self.copy_to_runtime(code_file, code_file)
+        command = get_code_execution_command(self.lang, code_file)
+        output = self.execute_command(command)
+        return output
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:
@@ -197,20 +193,23 @@ class SandboxSession:
 
 def run_python_code():
     with SandboxSession(lang="python", keep_template=True, verbose=True) as session:
-        commands = [
-            "print('Hello, World!')",
-            "import numpy as np\nprint(np.random.rand())",
-            "import pandas as pd\nprint(pd.__version__)",
-        ]
-        output = session.run(commands, libraries=["numpy", "pandas"])
-        for out in output:
-            print(out)
+        output = session.run("print('Hello, World!')")
+        print(output)
+
+        output = session.run(
+            "import numpy as np\nprint(np.random.rand())", libraries=["numpy"]
+        )
+        print(output)
+
+        session.execute_command("pip install pandas")
+        output = session.run("import pandas as pd\nprint(pd.__version__)")
+        print(output)
 
         session.copy_to_runtime("README.md", "/sandbox/data.csv")
 
 def run_java_code():
     with SandboxSession(lang="java", keep_template=True, verbose=True) as session:
-        commands = [
+        output = session.run(
             """
             public class Main {
                 public static void main(String[] args) {
@@ -218,34 +217,38 @@ def run_java_code():
                 }
             }
             """
-        ]
-        output = session.run(commands)
-        print(output[0])
+        )
+        print(output)
 
 def run_javascript_code():
     with SandboxSession(lang="javascript", keep_template=True, verbose=True) as session:
-        commands = [
-            "console.log('Hello, World!')",
+        output = session.run("console.log('Hello, World!')")
+        print(output)
+
+        output = session.run(
             """
             const axios = require('axios');
             axios.get('https://jsonplaceholder.typicode.com/posts/1')
                 .then(response => console.log(response.data));
             """,
-        ]
-        output = session.run(commands, libraries=["axios"])
-        for out in output:
-            print(out)
+            libraries=["axios"],
+        )
+        print(output)
 
 def run_cpp_code():
     with SandboxSession(lang="cpp", keep_template=True, verbose=True) as session:
-        commands = [
+        output = session.run(
             """
             #include <iostream>
             int main() {
                 std::cout << "Hello, World!" << std::endl;
                 return 0;
             }
-            """,
+            """
+        )
+        print(output)
+
+        output = session.run(
             """
             #include <iostream>
             #include <vector>
@@ -257,7 +260,11 @@ def run_cpp_code():
                 std::cout << std::endl;
                 return 0;
             }
-            """,
+            """
+        )
+        print(output)
+
+        output = session.run(
             """
             #include <iostream>
             #include <vector>
@@ -272,10 +279,9 @@ def run_cpp_code():
                 return 0;
             }
             """,
-        ]
-        output = session.run(commands, libraries=["libstdc++"])
-        for out in output:
-            print(out)
+            libraries=["libstdc++"],
+        )
+        print(output)
 
 if __name__ == "__main__":
     run_python_code()

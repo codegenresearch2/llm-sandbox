@@ -29,17 +29,17 @@ def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optio
     :param libraries: List of libraries
     :return: Installation command
     """
-    if lang == SupportedLanguage.PYTHON:
+    if lang.upper() == SupportedLanguage.PYTHON:
         return f"pip install {' '.join(libraries)}"
-    elif lang == SupportedLanguage.JAVA:
+    elif lang.upper() == SupportedLanguage.JAVA:
         return f"mvn install:install-file -Dfile={' '.join(libraries)}"
-    elif lang == SupportedLanguage.JAVASCRIPT:
+    elif lang.upper() == SupportedLanguage.JAVASCRIPT:
         return f"yarn add {' '.join(libraries)}"
-    elif lang == SupportedLanguage.CPP:
+    elif lang.upper() == SupportedLanguage.CPP:
         return f"apt-get install {' '.join(libraries)}"
-    elif lang == SupportedLanguage.GO:
+    elif lang.upper() == SupportedLanguage.GO:
         return f"go get {' '.join(libraries)}"
-    elif lang == SupportedLanguage.RUBY:
+    elif lang.upper() == SupportedLanguage.RUBY:
         return f"gem install {' '.join(libraries)}"
     else:
         raise ValueError(f"Language {lang} is not supported")
@@ -77,7 +77,7 @@ def get_code_execution_command(lang: str, code_file: str) -> List[str]:
     if lang.upper() == SupportedLanguage.PYTHON:
         return ["python", code_file]
     elif lang.upper() == SupportedLanguage.JAVA:
-        return ["java", code_file]
+        return ["java", "-cp", code_file]
     elif lang.upper() == SupportedLanguage.JAVASCRIPT:
         return ["node", code_file]
     elif lang.upper() == SupportedLanguage.CPP:

@@ -26,7 +26,7 @@ def run_java_code():
                     System.out.println("Hello, World!");
                 }
             }
-            """,
+            """
         )
         print(output)
 
@@ -41,8 +41,7 @@ def run_javascript_code():
             const axios = require('axios');
             axios.get('https://jsonplaceholder.typicode.com/posts/1')
                 .then(response => console.log(response.data));
-            """,
-            libraries=["axios"],
+            """
         )
         print(output)
 
@@ -56,7 +55,7 @@ def run_cpp_code():
                 std::cout << "Hello, World!" << std::endl;
                 return 0;
             }
-            """,
+            """
         )
         print(output)
 
@@ -72,10 +71,12 @@ def run_cpp_code():
                 std::cout << std::endl;
                 return 0;
             }
-            """,
+            """
         )
         print(output)
 
+        # Add a comment to clarify the purpose of this block
+        # Comment: Running C++ code with the std::reverse algorithm
         output = session.run(
             """
             #include <iostream>

@@ -38,9 +38,9 @@ def get_libraries_installation_command(
     elif lang == SupportedLanguage.JAVASCRIPT:
         return f"yarn add {' '.join(libraries)}"
     elif lang == SupportedLanguage.CPP:
-        return f"g++ -o a.out {libraries[0]} && ./a.out"
+        return f"apt-get install {' '.join(libraries)}"
     elif lang == SupportedLanguage.GO:
-        return f"go run {libraries[0]}"
+        return f"go get {' '.join(libraries)}"
     elif lang == SupportedLanguage.RUBY:
         return f"gem install {' '.join(libraries)}"
     else:

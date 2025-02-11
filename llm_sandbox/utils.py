@@ -15,12 +15,17 @@ def image_exists(client: DockerClient, image: str) -> bool:
 
     Returns:
     bool: True if the image exists, False otherwise.
+
+    Raises:
+    Exception: If an unexpected error occurs.
     """
     try:
         client.images.get(image)
         return True
     except docker.errors.ImageNotFound:
         return False
+    except Exception as e:
+        raise e
 
 def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optional[str]:
     """
@@ -48,8 +53,8 @@ def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optio
         return f"go get {' '.join(libraries)}"
     elif lang == SupportedLanguage.RUBY:
         return f"gem install {' '.join(libraries)}"
-
-    raise ValueError(f"Language {lang} is not supported")
+    else:
+        raise ValueError(f"Language {lang} is not supported")
 
 def get_code_file_extension(lang: str) -> str:
     """
@@ -121,7 +126,7 @@ def test_directory_existence(directory: str) -> bool:
     import os
     return os.path.isdir(directory)
 
-def run_code(lang: str, code: str, libraries: List[str] = None, test_directory: str = None):
+def run_code(lang: str, code: str, libraries: List[str] = None, test_directory: str = None) -> str:
     """
     Run the code with the given language and libraries.
 

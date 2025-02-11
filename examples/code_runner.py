@@ -78,7 +78,7 @@ def run_cpp_code():
         )
         print(output)
 
-        # Reverse the vector
+        # Reverse the vector with libraries
         output = session.run(
             """
             #include <iostream>

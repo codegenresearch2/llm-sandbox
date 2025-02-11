@@ -144,9 +144,9 @@ class SandboxSession:
         output = ""
         for command in get_code_execution_command(self.lang, code_file):
             result = self.execute_command(command)
-            output += result[1] + "\n"  # Append only the output string
+            output += result.strip() + "\n"  # Append only the output string
 
-        return (0, output.strip())
+        return output.strip()
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:
@@ -213,7 +213,7 @@ class SandboxSession:
             if self.verbose:
                 print(chunk_str, end="")
 
-        return (0, output.strip())
+        return output.strip()
 
     def __enter__(self):
         self.open()

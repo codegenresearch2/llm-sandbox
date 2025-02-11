@@ -6,23 +6,36 @@ from docker import DockerClient
 from llm_sandbox.const import SupportedLanguage, DefaultImage, NotSupportedLibraryInstallation, SupportedLanguageValues
 
 def image_exists(client: DockerClient, image: str) -> bool:
-    """Check if a Docker image exists."""
+    """
+    Check if a Docker image exists.
+
+    Parameters:
+    client (DockerClient): Docker client.
+    image (str): Docker image.
+
+    Returns:
+    bool: True if the image exists, False otherwise.
+    """
     try:
         client.images.get(image)
         return True
     except docker.errors.ImageNotFound:
         return False
-    except Exception as e:
-        raise e
 
 def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optional[str]:
-    """Get the command to install libraries for the given language."""
-    if lang not in SupportedLanguageValues:
-        raise ValueError(f"Language {lang} is not supported")
+    """
+    Get the command to install libraries for the given language.
 
-    if lang in NotSupportedLibraryInstallation:
-        raise ValueError(f"Library installation is not supported for {lang}")
+    Parameters:
+    lang (str): Programming language.
+    libraries (List[str]): List of libraries.
 
+    Returns:
+    Optional[str]: Installation command.
+
+    Raises:
+    ValueError: If the language is not supported.
+    """
     if lang == SupportedLanguage.PYTHON:
         return f"pip install {' '.join(libraries)}"
     elif lang == SupportedLanguage.JAVA:
@@ -39,7 +52,18 @@ def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optio
     raise ValueError(f"Language {lang} is not supported")
 
 def get_code_file_extension(lang: str) -> str:
-    """Get the file extension for the given language."""
+    """
+    Get the file extension for the given language.
+
+    Parameters:
+    lang (str): Programming language.
+
+    Returns:
+    str: File extension.
+
+    Raises:
+    ValueError: If the language is not supported.
+    """
     if lang == SupportedLanguage.PYTHON:
         return "py"
     elif lang == SupportedLanguage.JAVA:
@@ -56,11 +80,23 @@ def get_code_file_extension(lang: str) -> str:
         raise ValueError(f"Language {lang} is not supported")
 
 def get_code_execution_command(lang: str, code_file: str) -> List[str]:
-    """Get the command to execute the code."""
+    """
+    Get the command to execute the code.
+
+    Parameters:
+    lang (str): Programming language.
+    code_file (str): Path to the code file.
+
+    Returns:
+    List[str]: Execution commands.
+
+    Raises:
+    ValueError: If the language is not supported.
+    """
     if lang == SupportedLanguage.PYTHON:
         return [f"python {code_file}"]
     elif lang == SupportedLanguage.JAVA:
-        return [f"javac {code_file}", f"java {code_file.split('.')[0]}"]
+        return [f"java {code_file.split('.')[0]}"]
     elif lang == SupportedLanguage.JAVASCRIPT:
         return [f"node {code_file}"]
     elif lang == SupportedLanguage.CPP:
@@ -73,12 +109,34 @@ def get_code_execution_command(lang: str, code_file: str) -> List[str]:
         raise ValueError(f"Language {lang} is not supported")
 
 def test_directory_existence(directory: str) -> bool:
-    """Test if a directory exists."""
+    """
+    Test if a directory exists.
+
+    Parameters:
+    directory (str): Directory path.
+
+    Returns:
+    bool: True if the directory exists, False otherwise.
+    """
     import os
     return os.path.isdir(directory)
 
 def run_code(lang: str, code: str, libraries: List[str] = None, test_directory: str = None):
-    """Run the code with the given language and libraries."""
+    """
+    Run the code with the given language and libraries.
+
+    Parameters:
+    lang (str): Programming language.
+    code (str): Code to be executed.
+    libraries (List[str], optional): List of libraries to be installed. Defaults to None.
+    test_directory (str, optional): Directory to be tested for existence. Defaults to None.
+
+    Returns:
+    str: Output of the code execution.
+
+    Raises:
+    ValueError: If the test directory does not exist.
+    """
     if libraries is None:
         libraries = []
 

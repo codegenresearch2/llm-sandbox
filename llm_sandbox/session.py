@@ -52,7 +52,7 @@ class SandboxSession:
         self.verbose = verbose
 
     def open(self):
-        warning_str = "Since the `keep_template` flag is set to True, the Docker image will not be removed after the session ends and remains for future use."
+        warning_str = "The Docker image will not be removed after the session ends as the `keep_template` flag is set to True."
         if self.dockerfile:
             self.path = os.path.dirname(self.dockerfile)
             if self.verbose:
@@ -107,7 +107,7 @@ class SandboxSession:
                 if self.verbose:
                     print(f"Image {self.image.tags[-1]} is in use by other containers. Skipping removal...")
 
-    def run(self, code: str, libraries: Optional[List] = None):
+    def run(self, commands: List[str], libraries: Optional[List] = None):
         if not self.container:
             raise RuntimeError("Session is not open. Please call open() method before running code.")
 
@@ -118,14 +118,18 @@ class SandboxSession:
             command = get_libraries_installation_command(self.lang, libraries)
             self.execute_command(command)
 
-        code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
-        with open(code_file, "w") as f:
-            f.write(code)
+        output_list = []
+        for command in commands:
+            code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
+            with open(code_file, "w") as f:
+                f.write(command)
 
-        self.copy_to_runtime(code_file, code_file)
-        command = get_code_execution_command(self.lang, code_file)
-        output = self.execute_command(command)
-        return output
+            self.copy_to_runtime(code_file, code_file)
+            command = get_code_execution_command(self.lang, code_file)
+            output = self.execute_command(command)
+            output_list.append(output)
+
+        return output_list
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:
@@ -193,23 +197,20 @@ class SandboxSession:
 
 def run_python_code():
     with SandboxSession(lang="python", keep_template=True, verbose=True) as session:
-        output = session.run("print('Hello, World!')")
-        print(output)
-
-        output = session.run(
-            "import numpy as np\nprint(np.random.rand())", libraries=["numpy"]
-        )
-        print(output)
-
-        session.execute_command("pip install pandas")
-        output = session.run("import pandas as pd\nprint(pd.__version__)")
-        print(output)
+        commands = [
+            "print('Hello, World!')",
+            "import numpy as np\nprint(np.random.rand())",
+            "import pandas as pd\nprint(pd.__version__)",
+        ]
+        output = session.run(commands, libraries=["numpy", "pandas"])
+        for out in output:
+            print(out)
 
         session.copy_to_runtime("README.md", "/sandbox/data.csv")
 
 def run_java_code():
     with SandboxSession(lang="java", keep_template=True, verbose=True) as session:
-        output = session.run(
+        commands = [
             """
             public class Main {
                 public static void main(String[] args) {
@@ -217,38 +218,34 @@ def run_java_code():
                 }
             }
             """
-        )
-        print(output)
+        ]
+        output = session.run(commands)
+        print(output[0])
 
 def run_javascript_code():
     with SandboxSession(lang="javascript", keep_template=True, verbose=True) as session:
-        output = session.run("console.log('Hello, World!')")
-        print(output)
-
-        output = session.run(
+        commands = [
+            "console.log('Hello, World!')",
             """
             const axios = require('axios');
             axios.get('https://jsonplaceholder.typicode.com/posts/1')
                 .then(response => console.log(response.data));
             """,
-            libraries=["axios"],
-        )
-        print(output)
+        ]
+        output = session.run(commands, libraries=["axios"])
+        for out in output:
+            print(out)
 
 def run_cpp_code():
     with SandboxSession(lang="cpp", keep_template=True, verbose=True) as session:
-        output = session.run(
+        commands = [
             """
             #include <iostream>
             int main() {
                 std::cout << "Hello, World!" << std::endl;
                 return 0;
             }
-            """
-        )
-        print(output)
-
-        output = session.run(
+            """,
             """
             #include <iostream>
             #include <vector>
@@ -260,11 +257,7 @@ def run_cpp_code():
                 std::cout << std::endl;
                 return 0;
             }
-            """
-        )
-        print(output)
-
-        output = session.run(
+            """,
             """
             #include <iostream>
             #include <vector>
@@ -279,9 +272,10 @@ def run_cpp_code():
                 return 0;
             }
             """,
-            libraries=["libstdc++"],
-        )
-        print(output)
+        ]
+        output = session.run(commands, libraries=["libstdc++"])
+        for out in output:
+            print(out)
 
 if __name__ == "__main__":
     run_python_code()

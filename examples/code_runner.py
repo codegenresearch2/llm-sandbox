@@ -1,60 +1,56 @@
 from llm_sandbox import SandboxSession
 
-def run_code(session, code: str, libraries: list = None):
-    if libraries:
-        session.execute_command(f"pip install {' '.join(libraries)}")
-
-    output = session.run(code)
-    print(output)
-
 def run_python_code():
     with SandboxSession(lang="python", keep_template=True, verbose=True) as session:
-        output = run_code(session, "print('Hello, World!')")
+        output = session.run("print('Hello, World!')")
+        print(output)
 
-        output = run_code(session, """
-import numpy as np
-print(np.random.rand())
-""", libraries=["numpy"])
+        session.execute_command("pip install numpy")
+        output = session.run("import numpy as np\nprint(np.random.rand())")
+        print(output)
 
         session.execute_command("pip install pandas")
-        output = run_code(session, """
-import pandas as pd
-print(pd.__version__)
-""")
+        output = session.run("import pandas as pd\nprint(pd.__version__)")
+        print(output)
 
         session.copy_to_runtime("README.md", "/sandbox/data.csv")
 
 def run_java_code():
     with SandboxSession(lang="java", keep_template=True, verbose=True) as session:
-        output = run_code(session, """
+        output = session.run("""
 public class Main {
     public static void main(String[] args) {
         System.out.println("Hello, World!");
     }
 }
 """)
+        print(output)
 
 def run_javascript_code():
     with SandboxSession(lang="javascript", keep_template=True, verbose=True) as session:
-        output = run_code(session, "console.log('Hello, World!')")
+        output = session.run("console.log('Hello, World!')")
+        print(output)
 
-        output = run_code(session, """
+        session.execute_command("yarn add axios")
+        output = session.run("""
 const axios = require('axios');
 axios.get('https://jsonplaceholder.typicode.com/posts/1')
     .then(response => console.log(response.data));
-""", libraries=["axios"])
+""")
+        print(output)
 
 def run_cpp_code():
     with SandboxSession(lang="cpp", keep_template=True, verbose=True) as session:
-        output = run_code(session, """
+        output = session.run("""
 #include <iostream>
 int main() {
     std::cout << "Hello, World!" << std::endl;
     return 0;
 }
 """)
+        print(output)
 
-        output = run_code(session, """
+        output = session.run("""
 #include <iostream>
 #include <vector>
 int main() {
@@ -66,8 +62,10 @@ int main() {
     return 0;
 }
 """)
+        print(output)
 
-        output = run_code(session, """
+        session.execute_command("apt-get install libstdc++")
+        output = session.run("""
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -80,7 +78,8 @@ int main() {
     std::cout << std::endl;
     return 0;
 }
-""", libraries=["libstdc++"])
+""")
+        print(output)
 
 if __name__ == "__main__":
     run_python_code()

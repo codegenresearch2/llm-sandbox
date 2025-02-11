@@ -1,6 +1,6 @@
 import docker
 import docker.errors
-from typing import List, Optional
+from typing import List
 
 from docker import DockerClient
 from llm_sandbox.const import SupportedLanguage
@@ -24,7 +24,7 @@ def image_exists(client: DockerClient, image: str) -> bool:
 
 def get_libraries_installation_command(
     lang: str, libraries: List[str]
-) -> Optional[str]:
+) -> str:
     """
     Get the command to install libraries for the given language
     :param lang: Programming language

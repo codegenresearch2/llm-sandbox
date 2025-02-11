@@ -2,13 +2,13 @@ import docker
 import docker.errors
 from typing import List, Optional
 
-from docker import DockerClient
 from llm_sandbox.const import SupportedLanguage, DefaultImage, NotSupportedLibraryInstallation, SupportedLanguageValues
 
 
-def image_exists(client: DockerClient, image: str) -> bool:
+def image_exists(client: docker.DockerClient, image: str) -> bool:
     """
-    Check if a Docker image exists
+    Check if a Docker image exists.
+    
     :param client: Docker client
     :param image: Docker image
     :return: True if the image exists, False otherwise
@@ -24,7 +24,8 @@ def image_exists(client: DockerClient, image: str) -> bool:
 
 def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optional[str]:
     """
-    Get the command to install libraries for the given language
+    Get the command to install libraries for the given language.
+    
     :param lang: Programming language
     :param libraries: List of libraries
     :return: Installation command or None if the language is not supported for library installation
@@ -47,7 +48,8 @@ def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optio
 
 def get_code_file_extension(lang: str) -> str:
     """
-    Get the file extension for the given language
+    Get the file extension for the given language.
+    
     :param lang: Programming language
     :return: File extension
     """
@@ -67,24 +69,25 @@ def get_code_file_extension(lang: str) -> str:
         raise ValueError(f"Language {lang} is not supported")
 
 
-def get_code_execution_command(lang: str, code_file: str) -> List[str]:
+def get_code_execution_command(lang: str, code_file: str) -> str:
     """
-    Get the command to execute the code
+    Get the command to execute the code.
+    
     :param lang: Programming language
     :param code_file: Path to the code file
-    :return: List of execution commands
+    :return: Execution command as a single string
     """
     if lang == SupportedLanguage.PYTHON:
-        return ["python", code_file]
+        return f"python {code_file}"
     elif lang == SupportedLanguage.JAVA:
-        return ["java", code_file]
+        return f"java {code_file}"
     elif lang == SupportedLanguage.JAVASCRIPT:
-        return ["node", code_file]
+        return f"node {code_file}"
     elif lang == SupportedLanguage.CPP:
-        return ["./" + code_file]
+        return f"./{code_file}"
     elif lang == SupportedLanguage.GO:
-        return ["go", "run", code_file]
+        return f"go run {code_file}"
     elif lang == SupportedLanguage.RUBY:
-        return ["ruby", code_file]
+        return f"ruby {code_file}"
     else:
         raise ValueError(f"Language {lang} is not supported")

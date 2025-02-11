@@ -25,7 +25,7 @@ def image_exists(client: DockerClient, image: str) -> bool:
     except Exception as e:
         raise e
 
-def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optional[List[str]]:
+def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optional[str]:
     """
     Get the command to install libraries for the given language.
 
@@ -34,23 +34,23 @@ def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optio
     libraries (List[str]): List of libraries.
 
     Returns:
-    Optional[List[str]]: Installation command as a list of strings.
+    Optional[str]: Installation command as a single string.
     """
     if lang in NotSupportedLibraryInstallation:
         return None
 
     if lang == SupportedLanguage.PYTHON:
-        return [f"pip install {' '.join(libraries)}"]
+        return f"pip install {' '.join(libraries)}"
     elif lang == SupportedLanguage.JAVA:
-        return [f"mvn install:install-file -Dfile={' '.join(libraries)}"]
+        return f"mvn install:install-file -Dfile={' '.join(libraries)}"
     elif lang == SupportedLanguage.JAVASCRIPT:
-        return [f"yarn add {' '.join(libraries)}"]
+        return f"yarn add {' '.join(libraries)}"
     elif lang == SupportedLanguage.CPP:
-        return [f"apt-get update", f"apt-get install -y {' '.join(libraries)}"]
+        return f"apt-get update && apt-get install -y {' '.join(libraries)}"
     elif lang == SupportedLanguage.GO:
-        return [f"go get {' '.join(libraries)}"]
+        return f"go get {' '.join(libraries)}"
     elif lang == SupportedLanguage.RUBY:
-        return [f"gem install {' '.join(libraries)}"]
+        return f"gem install {' '.join(libraries)}"
     else:
         raise ValueError(f"Language {lang} is not supported")
 
@@ -79,7 +79,7 @@ def get_code_file_extension(lang: str) -> str:
     else:
         raise ValueError(f"Language {lang} is not supported")
 
-def get_code_execution_command(lang: str, code_file: str) -> List[str]:
+def get_code_execution_command(lang: str, code_file: str) -> str:
     """
     Get the command to execute the code.
 
@@ -88,20 +88,20 @@ def get_code_execution_command(lang: str, code_file: str) -> List[str]:
     code_file (str): Path to the code file.
 
     Returns:
-    List[str]: Execution command as a list of strings.
+    str: Execution command as a single string.
     """
     if lang == SupportedLanguage.PYTHON:
-        return [f"python {code_file}"]
+        return f"python {code_file}"
     elif lang == SupportedLanguage.JAVA:
-        return [f"javac {code_file}", f"java {os.path.splitext(code_file)[0]}"]
+        return f"java {os.path.splitext(code_file)[0]}"
     elif lang == SupportedLanguage.JAVASCRIPT:
-        return [f"node {code_file}"]
+        return f"node {code_file}"
     elif lang == SupportedLanguage.CPP:
-        return [f"g++ {code_file} -o output", "./output"]
+        return f"./{code_file}"
     elif lang == SupportedLanguage.GO:
-        return [f"go run {code_file}"]
+        return f"go run {code_file}"
     elif lang == SupportedLanguage.RUBY:
-        return [f"ruby {code_file}"]
+        return f"ruby {code_file}"
     else:
         raise ValueError(f"Language {lang} is not supported")
 
@@ -127,11 +127,11 @@ def run_code(lang: str, code: str, libraries: List[str] = None):
 
     commands = []
     if libraries:
-        install_commands = get_libraries_installation_command(lang, libraries)
-        if install_commands:
-            commands.extend(install_commands)
+        install_command = get_libraries_installation_command(lang, libraries)
+        if install_command:
+            commands.append(install_command)
 
-    commands.extend(get_code_execution_command(lang, f"/sandbox/{code_file}"))
+    commands.append(get_code_execution_command(lang, f"/sandbox/{code_file}"))
 
     for command in commands:
         exit_code, output = container.exec_run(command, stream=True)
@@ -196,17 +196,3 @@ if __name__ == "__main__":
                 return 0;
             }
             """, libraries=["libstdc++"])
-
-I have addressed the feedback provided by the oracle and made the necessary changes to the code. Here's the updated code:
-
-1. **Docstrings**: I have added docstrings to each function, explaining their purpose, parameters, and return values.
-
-2. **Command Execution**: I have modified the `get_code_execution_command` function to return a list of commands for execution. This allows for executing multiple commands sequentially.
-
-3. **Error Handling**: I have simplified the error handling for unsupported languages by raising a `ValueError` in a more streamlined manner.
-
-4. **Library Installation Command**: I have updated the library installation command for C++ to match the gold code's approach.
-
-5. **Code Structure**: I have reviewed the overall structure of the code to ensure it follows the same logical flow as the gold code.
-
-The updated code should now be more aligned with the gold code and address the feedback received.

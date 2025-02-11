@@ -33,16 +33,15 @@ print(pd.__version__)
     )
 
 def run_java_code():
-    run_code(
-        lang="java",
-        code="""
+    with SandboxSession(lang="java", keep_template=True, verbose=True) as session:
+        output = session.run("""
 public class Main {
     public static void main(String[] args) {
         System.out.println("Hello, World!");
     }
 }
-"""
-    )
+""")
+        print(output)
 
 def run_javascript_code():
     run_code(

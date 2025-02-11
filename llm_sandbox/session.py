@@ -52,7 +52,7 @@ class SandboxSession:
         self.verbose = verbose
 
     def open(self):
-        warning_str = "The Docker image will not be removed after the session ends as the `keep_template` flag is set to True."
+        warning_str = "The Docker image will not be removed after the session ends as the 'keep_template' flag is set to True."
         if self.dockerfile:
             self.path = os.path.dirname(self.dockerfile)
             if self.verbose:
@@ -70,7 +70,7 @@ class SandboxSession:
         if isinstance(self.image, str):
             if not image_exists(self.client, self.image):
                 if self.verbose:
-                    f_str = f"Pulling image {self.image}..."
+                    f_str = f"Pulling Docker image {self.image}..."
                     f_str = f"{f_str}\n{warning_str}" if self.keep_template else f_str
                     print(f_str)
 
@@ -79,7 +79,7 @@ class SandboxSession:
             else:
                 self.image = self.client.images.get(self.image)
                 if self.verbose:
-                    print(f"Using image {self.image.tags[-1]}.")
+                    print(f"Using Docker image {self.image.tags[-1]}.")
 
         self.container = self.client.containers.run(self.image, detach=True, tty=True)
 
@@ -105,7 +105,7 @@ class SandboxSession:
                     raise ValueError("Invalid image type.")
             else:
                 if self.verbose:
-                    print(f"Image {self.image.tags[-1]} is in use by other containers. Skipping removal...")
+                    print(f"Docker image {self.image.tags[-1]} is in use by other containers. Skipping removal...")
 
     def run(self, code: str, libraries: Optional[List] = None):
         if not self.container:

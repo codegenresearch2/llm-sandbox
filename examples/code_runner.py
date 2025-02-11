@@ -1,7 +1,6 @@
 from llm_sandbox import SandboxSession
-from llm_sandbox.utils import get_libraries_installation_command, get_code_execution_command
 
-def execute_python_code():
+def run_python_code():
     with SandboxSession(lang='python', keep_template=True, verbose=True) as session:
         output = session.run("print('Hello, World!')")
         print(output)
@@ -15,7 +14,7 @@ def execute_python_code():
 
         session.copy_to_runtime('README.md', '/sandbox/data.csv')
 
-def execute_java_code():
+def run_java_code():
     with SandboxSession(lang='java', keep_template=True, verbose=True) as session:
         output = session.run("""
             public class Main {
@@ -26,7 +25,7 @@ def execute_java_code():
         """)
         print(output)
 
-def execute_javascript_code():
+def run_javascript_code():
     with SandboxSession(lang='javascript', keep_template=True, verbose=True) as session:
         output = session.run("console.log('Hello, World!')")
         print(output)
@@ -38,7 +37,7 @@ def execute_javascript_code():
         """, libraries=['axios'])
         print(output)
 
-def execute_cpp_code():
+def run_cpp_code():
     with SandboxSession(lang='cpp', keep_template=True, verbose=True) as session:
         output = session.run("""
             #include <iostream>
@@ -63,6 +62,7 @@ def execute_cpp_code():
         """)
         print(output)
 
+        # run with libraries
         output = session.run("""
             #include <iostream>
             #include <vector>
@@ -80,7 +80,7 @@ def execute_cpp_code():
         print(output)
 
 if __name__ == '__main__':
-    execute_python_code()
-    execute_java_code()
-    execute_javascript_code()
-    execute_cpp_code()
+    run_python_code()
+    run_java_code()
+    run_javascript_code()
+    run_cpp_code()

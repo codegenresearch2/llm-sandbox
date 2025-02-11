@@ -1,6 +1,5 @@
 from llm_sandbox import SandboxSession
 from llm_sandbox.utils import get_libraries_installation_command, get_code_execution_command
-from llm_sandbox.const import SupportedLanguage
 
 def run_code(lang: str, code: str, libraries: list = None):
     with SandboxSession(lang=lang, keep_template=True, verbose=True) as session:
@@ -8,9 +7,9 @@ def run_code(lang: str, code: str, libraries: list = None):
             install_command = get_libraries_installation_command(lang, libraries)
             session.execute_command(install_command)
 
-        if lang == SupportedLanguage.CPP:
-            session.write_code_to_file(code, "main.cpp")
-            exec_commands = get_code_execution_command(lang, "main.cpp")
+        if lang == 'cpp':
+            session.write_code_to_file(code, 'main.cpp')
+            exec_commands = get_code_execution_command(lang, 'main.cpp')
             for command in exec_commands:
                 output = session.execute_command(command)
                 print(output)
@@ -19,13 +18,13 @@ def run_code(lang: str, code: str, libraries: list = None):
             print(output)
 
 def run_python_code():
-    run_code(SupportedLanguage.PYTHON, "print('Hello, World!')")
-    run_code(SupportedLanguage.PYTHON, "import numpy as np\nprint(np.random.rand())", libraries=["numpy"])
-    run_code(SupportedLanguage.PYTHON, "import pandas as pd\nprint(pd.__version__)", libraries=["pandas"])
-    session.copy_to_runtime("README.md", "/sandbox/data.csv")
+    run_code('python', "print('Hello, World!')")
+    run_code('python', "import numpy as np\nprint(np.random.rand())", libraries=['numpy'])
+    run_code('python', "import pandas as pd\nprint(pd.__version__)", libraries=['pandas'])
+    session.copy_to_runtime('README.md', '/sandbox/data.csv')
 
 def run_java_code():
-    run_code(SupportedLanguage.JAVA, """
+    run_code('java', """
         public class Main {
             public static void main(String[] args) {
                 System.out.println("Hello, World!");
@@ -34,22 +33,22 @@ def run_java_code():
     """)
 
 def run_javascript_code():
-    run_code(SupportedLanguage.JAVASCRIPT, "console.log('Hello, World!')")
-    run_code(SupportedLanguage.JAVASCRIPT, """
+    run_code('javascript', "console.log('Hello, World!')")
+    run_code('javascript', """
         const axios = require('axios');
         axios.get('https://jsonplaceholder.typicode.com/posts/1')
             .then(response => console.log(response.data));
-    """, libraries=["axios"])
+    """, libraries=['axios'])
 
 def run_cpp_code():
-    run_code(SupportedLanguage.CPP, """
+    run_code('cpp', """
         #include <iostream>
         int main() {
             std::cout << "Hello, World!" << std::endl;
             return 0;
         }
     """)
-    run_code(SupportedLanguage.CPP, """
+    run_code('cpp', """
         #include <iostream>
         #include <vector>
         int main() {
@@ -61,7 +60,7 @@ def run_cpp_code():
             return 0;
         }
     """)
-    run_code(SupportedLanguage.CPP, """
+    run_code('cpp', """
         #include <iostream>
         #include <vector>
         #include <algorithm>
@@ -74,9 +73,9 @@ def run_cpp_code():
             std::cout << std::endl;
             return 0;
         }
-    """, libraries=["libstdc++"])
+    """, libraries=['libstdc++'])
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run_python_code()
     run_java_code()
     run_javascript_code()

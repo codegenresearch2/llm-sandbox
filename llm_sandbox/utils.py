@@ -83,7 +83,9 @@ def get_code_execution_command(lang: str, code_file: str) -> List[str]:
     elif lang == SupportedLanguage.JAVASCRIPT:
         return ["node", code_file]
     elif lang == SupportedLanguage.CPP:
-        return ["g++", "-o", "a.out", code_file, "&&", "./a.out"]
+        compile_command = ["g++", "-o", "a.out", code_file]
+        execute_command = ["./a.out"]
+        return compile_command + execute_command
     elif lang == SupportedLanguage.GO:
         return ["go", "run", code_file]
     elif lang == SupportedLanguage.RUBY:

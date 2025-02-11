@@ -42,7 +42,7 @@ def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optio
     elif lang == SupportedLanguage.RUBY:
         return f"gem install {' '.join(libraries)}"
     else:
-        return None
+        raise ValueError(f"Language {lang} is not supported")
 
 
 def get_code_file_extension(lang: str) -> str:

@@ -133,8 +133,11 @@ class SandboxSession:
                     f"Library installation has not been supported for {self.lang} yet!"
                 )
 
-            command = get_libraries_installation_command(self.lang, libraries)
-            self.execute_command(command)
+            commands = get_code_execution_command(self.lang, code)
+            output = ""
+            for command in commands:
+                output += self.execute_command(command)
+            return output
 
         code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
         with open(code_file, "w") as f:

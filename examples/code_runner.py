@@ -79,9 +79,6 @@ def run_cpp_code():
         )
         print(output)
 
-        if not image_exists(session.client, DefaultImage.CPP):
-            session.execute_command(f"docker pull {DefaultImage.CPP}")
-
         libraries = ["libstdc++"]
         if not all(image_exists(session.client, f"library:{lib}") for lib in libraries):
             install_cmd = get_libraries_installation_command("cpp", libraries)

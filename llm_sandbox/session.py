@@ -148,7 +148,7 @@ class SandboxSession:
         # Execute the code file multiple times if necessary
         while True:
             result = self.execute_command(get_code_execution_command(self.lang, code_file))
-            output += result
+            output += result[1]  # Extract the output string from the tuple
 
             # Check if the code execution has finished
             if "Finished" in output:

@@ -16,12 +16,17 @@ def image_exists(client: DockerClient, image: str) -> bool:
 
     Returns:
     bool: True if the image exists, False otherwise.
+
+    Raises:
+    Exception: If an unexpected error occurs.
     """
     try:
         client.images.get(image)
         return True
     except docker.errors.ImageNotFound:
         return False
+    except Exception as e:
+        raise Exception(f"An error occurred while checking if the image exists: {str(e)}")
 
 def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optional[str]:
     """
@@ -33,6 +38,9 @@ def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optio
 
     Returns:
     Optional[str]: Installation command as a single string.
+
+    Raises:
+    ValueError: If the language is not supported.
     """
     if lang in NotSupportedLibraryInstallation:
         return None
@@ -61,6 +69,9 @@ def get_code_file_extension(lang: str) -> str:
 
     Returns:
     str: File extension.
+
+    Raises:
+    ValueError: If the language is not supported.
     """
     if lang == SupportedLanguage.PYTHON:
         return "py"
@@ -87,6 +98,9 @@ def get_code_execution_command(lang: str, code_file: str) -> list:
 
     Returns:
     list: Execution command as a list of strings.
+
+    Raises:
+    ValueError: If the language is not supported.
     """
     if lang == SupportedLanguage.PYTHON:
         return [f"python {code_file}"]
@@ -111,6 +125,9 @@ def run_code(lang: str, code: str, libraries: List[str] = None):
     lang (str): Programming language.
     code (str): Code to run.
     libraries (List[str], optional): List of libraries to install. Defaults to None.
+
+    Raises:
+    Exception: If an error occurs while running the code.
     """
     client = docker.from_env()
     image = getattr(DefaultImage, lang.upper())

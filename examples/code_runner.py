@@ -79,11 +79,6 @@ def run_cpp_code():
         )
         print(output)
 
-        libraries = ["libstdc++"]
-        if not all(session.image_exists(f"library:{lib}") for lib in libraries):
-            install_cmd = get_libraries_installation_command("cpp", libraries)
-            session.execute_command(install_cmd)
-
         output = session.run(
             """
             #include <iostream>
@@ -99,7 +94,6 @@ def run_cpp_code():
                 return 0;
             }
             """,
-            libraries=libraries,
         )
         print(output)
 

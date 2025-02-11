@@ -79,7 +79,7 @@ def get_code_file_extension(lang: str) -> str:
     else:
         raise ValueError(f"Language {lang} is not supported")
 
-def get_code_execution_command(lang: str, code_file: str) -> str:
+def get_code_execution_command(lang: str, code_file: str) -> List[str]:
     """
     Get the command to execute the code.
 
@@ -88,20 +88,20 @@ def get_code_execution_command(lang: str, code_file: str) -> str:
     code_file (str): Path to the code file.
 
     Returns:
-    str: Execution command as a single string.
+    List[str]: Execution command as a list of strings.
     """
     if lang == SupportedLanguage.PYTHON:
-        return f"python {code_file}"
+        return [f"python {code_file}"]
     elif lang == SupportedLanguage.JAVA:
-        return f"java {os.path.splitext(code_file)[0]}"
+        return [f"javac {code_file}", f"java {os.path.splitext(code_file)[0]}"]
     elif lang == SupportedLanguage.JAVASCRIPT:
-        return f"node {code_file}"
+        return [f"node {code_file}"]
     elif lang == SupportedLanguage.CPP:
-        return f"./{code_file}"
+        return [f"g++ -o a.out {code_file}", "./a.out"]
     elif lang == SupportedLanguage.GO:
-        return f"go run {code_file}"
+        return [f"go run {code_file}"]
     elif lang == SupportedLanguage.RUBY:
-        return f"ruby {code_file}"
+        return [f"ruby {code_file}"]
     else:
         raise ValueError(f"Language {lang} is not supported")
 
@@ -131,7 +131,7 @@ def run_code(lang: str, code: str, libraries: List[str] = None):
         if install_command:
             commands.append(install_command)
 
-    commands.append(get_code_execution_command(lang, f"/sandbox/{code_file}"))
+    commands.extend(get_code_execution_command(lang, f"/sandbox/{code_file}"))
 
     for command in commands:
         exit_code, output = container.exec_run(command, stream=True)

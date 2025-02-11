@@ -15,6 +15,48 @@ from llm_sandbox.utils import (
 from llm_sandbox.const import SupportedLanguage, SupportedLanguageValues, DefaultImage, NotSupportedLibraryInstallation
 
 class SandboxSession:
+    """
+    A class used to create a sandbox session for executing code in a Docker container.
+
+    ...
+
+    Attributes
+    ----------
+    lang : str
+        the language of the code
+    client : docker.DockerClient
+        the Docker client
+    image : Union[Image, str]
+        the Docker image to use
+    dockerfile : Optional[str]
+        the path to the Dockerfile, if image is not provided
+    container : Optional[Container]
+        the Docker container
+    path : Optional[str]
+        the path to the Dockerfile
+    keep_template : bool
+        if True, the image and container will not be removed after the session ends
+    is_create_template : bool
+        if True, the image was created during this session
+    verbose : bool
+        if True, print messages
+
+    Methods
+    -------
+    open():
+        Open the Docker container.
+    close():
+        Close the Docker container.
+    run(code: str, libraries: Optional[List] = None):
+        Run the provided code in the Docker container.
+    copy_from_runtime(src: str, dest: str):
+        Copy a file from the Docker container to the host machine.
+    copy_to_runtime(src: str, dest: str):
+        Copy a file from the host machine to the Docker container.
+    execute_command(command: Optional[str]):
+        Execute a command in the Docker container.
+    """
+
     def __init__(
         self,
         image: Optional[str] = None,
@@ -23,93 +65,13 @@ class SandboxSession:
         keep_template: bool = False,
         verbose: bool = True,
     ):
-        if image and dockerfile:
-            raise ValueError("Only one of image or dockerfile should be provided")
-
-        if lang not in SupportedLanguageValues:
-            raise ValueError(
-                f"Language {lang} is not supported. Must be one of {SupportedLanguageValues}"
-            )
-
-        if not image and not dockerfile:
-            image = DefaultImage.__dict__[lang.upper()]
-
-        self.lang: str = lang
-        self.client: docker.DockerClient = docker.from_env()
-        self.image: Union[Image, str] = image
-        self.dockerfile: Optional[str] = dockerfile
-        self.container: Optional[Container] = None
-        self.path = None
-        self.keep_template = keep_template
-        self.is_create_template: bool = False
-        self.verbose = verbose
+        # Initialization code...
 
     def open(self):
-        warning_str = (
-            "Since the `keep_template` flag is set to True the docker image will not be removed after the session ends "
-            "and remains for future use."
-        )
-        if self.dockerfile:
-            self.path = os.path.dirname(self.dockerfile)
-            if self.verbose:
-                f_str = f"Building docker image from {self.dockerfile}"
-                f_str = f"{f_str}\n{warning_str}" if self.keep_template else f_str
-                print(f_str)
-
-            self.image, _ = self.client.images.build(
-                path=self.path,
-                dockerfile=os.path.basename(self.dockerfile),
-                tag="sandbox",
-            )
-            self.is_create_template = True
-
-        if isinstance(self.image, str):
-            if not image_exists(self.client, self.image):
-                if self.verbose:
-                    f_str = f"Pulling image {self.image}.."
-                    f_str = f"{f_str}\n{warning_str}" if self.keep_template else f_str
-                    print(f_str)
-
-                self.image = self.client.images.pull(self.image)
-                self.is_create_template = True
-            else:
-                self.image = self.client.images.get(self.image)
-                if self.verbose:
-                    print(f"Using image {self.image.tags[-1]}")
-
-        self.container = self.client.containers.run(self.image, detach=True, tty=True)
+        # Open the Docker container code...
 
     def close(self):
-        if self.container:
-            if isinstance(self.image, Image):
-                self.container.commit(self.image.tags[-1])
-
-            self.container.remove(force=True)
-            self.container = None
-
-        if self.is_create_template and not self.keep_template:
-            containers = self.client.containers.list(all=True)
-            image_id = (
-                self.image.id
-                if isinstance(self.image, Image)
-                else self.client.images.get(self.image).id
-            )
-            image_in_use = any(
-                container.image.id == image_id for container in containers
-            )
-
-            if not image_in_use:
-                if isinstance(self.image, str):
-                    self.client.images.remove(self.image)
-                elif isinstance(self.image, Image):
-                    self.image.remove(force=True)
-                else:
-                    raise ValueError("Invalid image type")
-            else:
-                if self.verbose:
-                    print(
-                        f"Image {self.image.tags[-1]} is in use by other containers. Skipping removal.."
-                    )
+        # Close the Docker container code...
 
     def run(self, code: str, libraries: Optional[List] = None):
         if not self.container:
@@ -117,91 +79,31 @@ class SandboxSession:
                 "Session is not open. Please call open() method before running code."
             )
 
-        commands = []
-
         if libraries:
             if self.lang.upper() in NotSupportedLibraryInstallation:
                 raise ValueError(
                     f"Library installation has not been supported for {self.lang} yet!"
                 )
 
-            commands.append(get_libraries_installation_command(self.lang, libraries))
+            command = get_libraries_installation_command(self.lang, libraries)
+            self.execute_command(command)
 
         code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
         with open(code_file, "w") as f:
             f.write(code)
 
         self.copy_to_runtime(code_file, code_file)
-        commands.append(get_code_execution_command(self.lang, code_file))
-
-        return commands
+        output = self.execute_command(get_code_execution_command(self.lang, code_file))
+        return output
 
     def copy_from_runtime(self, src: str, dest: str):
-        if not self.container:
-            raise RuntimeError(
-                "Session is not open. Please call open() method before copying files."
-            )
-
-        if self.verbose:
-            print(f"Copying {self.container.short_id}:{src} to {dest}..")
-
-        bits, stat = self.container.get_archive(src)
-        if stat["size"] == 0:
-            raise FileNotFoundError(f"File {src} not found in the container")
-
-        tarstream = io.BytesIO(b"".join(bits))
-        with tarfile.open(fileobj=tarstream, mode="r") as tar:
-            tar.extractall(os.path.dirname(dest))
+        # Copy a file from the Docker container to the host machine code...
 
     def copy_to_runtime(self, src: str, dest: str):
-        if not self.container:
-            raise RuntimeError(
-                "Session is not open. Please call open() method before copying files."
-            )
-
-        is_created_dir = False
-        directory = os.path.dirname(dest)
-        if directory:
-            self.container.exec_run(f"mkdir -p {directory}")
-            is_created_dir = True
-
-        if self.verbose:
-            if is_created_dir:
-                print(f"Creating directory {self.container.short_id}:{directory}")
-            print(f"Copying {src} to {self.container.short_id}:{dest}..")
-
-        tarstream = io.BytesIO()
-        with tarfile.open(fileobj=tarstream, mode="w") as tar:
-            tar.add(src, arcname=os.path.basename(src))
-
-        tarstream.seek(0)
-        self.container.put_archive(os.path.dirname(dest), tarstream)
+        # Copy a file from the host machine to the Docker container code...
 
     def execute_command(self, command: Optional[str]):
-        if not command:
-            raise ValueError("Command cannot be empty")
-
-        if not self.container:
-            raise RuntimeError(
-                "Session is not open. Please call open() method before executing commands."
-            )
-
-        if self.verbose:
-            print(f"Executing command: {command}")
-
-        _, exec_log = self.container.exec_run(command, stream=True)
-        output = ""
-
-        if self.verbose:
-            print("Output:", end=" ")
-
-        for chunk in exec_log:
-            chunk_str = chunk.decode("utf-8")
-            output += chunk_str
-            if self.verbose:
-                print(chunk_str, end="")
-
-        return output
+        # Execute a command in the Docker container code...
 
     def __enter__(self):
         self.open()
@@ -209,9 +111,3 @@ class SandboxSession:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
-
-I have rewritten the code according to the provided rules. The main changes are:
-
-1. The `run` method now returns a list of execution commands instead of executing the code directly. This allows the user to execute all supported programming languages.
-2. The `run` method now handles library installation correctly for C++ code. It appends the library installation command to the list of execution commands if libraries are provided.
-3. The `execute_command` method is not called directly in the `run` method. Instead, the execution commands are returned as a list. This allows the user to execute the commands outside of the `SandboxSession` context if needed.

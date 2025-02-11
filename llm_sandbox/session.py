@@ -193,7 +193,7 @@ class SandboxSession:
 
 def run_python_code():
     with SandboxSession(lang='python', keep_template=True, verbose=True) as session:
-        output = session.run('print(\'Hello, World!\')')
+        output = session.run('print("Hello, World!")')
         print(output)
 
         output = session.run(
@@ -222,7 +222,7 @@ def run_java_code():
 
 def run_javascript_code():
     with SandboxSession(lang='javascript', keep_template=True, verbose=True) as session:
-        output = session.run('console.log(\'Hello, World!\')')
+        output = session.run('console.log("Hello, World!")')
         print(output)
 
         output = session.run(

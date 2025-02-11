@@ -59,7 +59,6 @@ def run_cpp_code():
                 return 0;
             }
             """,
-            libraries=["libstdc++"],
         )
         print(output)
 

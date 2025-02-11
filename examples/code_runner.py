@@ -77,4 +77,7 @@ def run_cpp_code():
     """, libraries=["libstdc++"])
 
 if __name__ == "__main__":
+    run_python_code()
+    run_java_code()
+    run_javascript_code()
     run_cpp_code()

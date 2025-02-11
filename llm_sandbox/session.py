@@ -140,6 +140,8 @@ class SandboxSession:
         with open(code_file, "w") as f:
             f.write(code)
 
+        self.copy_to_runtime(code_file, code_file)
+
         # Initialize output variable
         output = ""
 

@@ -34,7 +34,7 @@ def get_libraries_installation_command(
     if lang == SupportedLanguage.PYTHON:
         return f"pip install {' '.join(libraries)}"
     elif lang == SupportedLanguage.JAVA:
-        raise ValueError(f"Language {lang} is not supported")
+        return "mvn install:install-file -Dfile=" + " ".join(libraries)
     elif lang == SupportedLanguage.JAVASCRIPT:
         return f"yarn add {' '.join(libraries)}"
     elif lang == SupportedLanguage.CPP:
@@ -79,7 +79,7 @@ def get_code_execution_command(lang: str, code_file: str) -> List[str]:
     if lang == SupportedLanguage.PYTHON:
         return ["python", code_file]
     elif lang == SupportedLanguage.JAVA:
-        return ["javac", code_file]
+        return ["javac", code_file, "&&", "java", code_file.replace(".java", "")]
     elif lang == SupportedLanguage.JAVASCRIPT:
         return ["node", code_file]
     elif lang == SupportedLanguage.CPP:

@@ -1,6 +1,6 @@
 import docker
 import docker.errors
-from typing import List, Optional
+from typing import Optional
 
 from docker import DockerClient
 from llm_sandbox.const import SupportedLanguage
@@ -69,26 +69,24 @@ def get_code_file_extension(lang: str) -> str:
         raise ValueError(f"Language {lang} is not supported")
 
 
-def get_code_execution_command(lang: str, code_file: str) -> List[str]:
+def get_code_execution_command(lang: str, code_file: str) -> str:
     """
     Get the command to execute the code
     :param lang: Programming language
     :param code_file: Path to the code file
-    :return: List of execution commands
+    :return: Execution command
     """
     if lang == SupportedLanguage.PYTHON:
-        return ["python", code_file]
+        return f"python {code_file}"
     elif lang == SupportedLanguage.JAVA:
-        return ["java", code_file]
+        return f"java {code_file}"
     elif lang == SupportedLanguage.JAVASCRIPT:
-        return ["node", code_file]
+        return f"node {code_file}"
     elif lang == SupportedLanguage.CPP:
-        compile_command = ["g++", "-o", "a.out", code_file]
-        execute_command = ["./a.out"]
-        return compile_command + execute_command
+        return f"g++ -o a.out {code_file} && ./a.out"
     elif lang == SupportedLanguage.GO:
-        return ["go", "run", code_file]
+        return f"go run {code_file}"
     elif lang == SupportedLanguage.RUBY:
-        return ["ruby", code_file]
+        return f"ruby {code_file}"
     else:
         raise ValueError(f"Language {lang} is not supported")

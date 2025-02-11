@@ -1,5 +1,7 @@
 from llm_sandbox import SandboxSession
-
+from llm_sandbox.utils import get_libraries_installation_command, get_code_execution_command, image_exists
+from llm_sandbox.const import DefaultImage, SupportedLanguageValues, NotSupportedLibraryInstallation
+import os
 
 def run_python_code():
     with SandboxSession(lang="python", keep_template=True, verbose=True) as session:
@@ -77,7 +79,14 @@ def run_cpp_code():
         )
         print(output)
 
-        # run with libraries
+        if not image_exists(session.client, DefaultImage.CPP):
+            session.execute_command(f"docker pull {DefaultImage.CPP}")
+
+        libraries = ["libstdc++"]
+        if not all(image_exists(session.client, f"library:{lib}") for lib in libraries):
+            install_cmd = get_libraries_installation_command("cpp", libraries)
+            session.execute_command(install_cmd)
+
         output = session.run(
             """
             #include <iostream>
@@ -93,7 +102,7 @@ def run_cpp_code():
                 return 0;
             }
             """,
-            libraries=["libstdc++"],
+            libraries=libraries,
         )
         print(output)
 

@@ -3,7 +3,6 @@ import os
 import docker
 import tarfile
 from typing import List, Optional, Union
-
 from docker.models.images import Image
 from docker.models.containers import Container
 from llm_sandbox.utils import (
@@ -133,16 +132,29 @@ class SandboxSession:
                     f"Library installation has not been supported for {self.lang} yet!"
                 )
 
-            # Construct a single command to install all libraries
+            # Install libraries
             install_command = get_libraries_installation_command(self.lang, libraries)
             self.execute_command(install_command)
+
+        # Create a temporary file for the code
+        code_file = "/tmp/code.py"
+        with open(code_file, "w") as f:
+            f.write(code)
+
+        # Copy the code file to the container
+        self.copy_to_runtime(code_file, code_file)
 
         # Get the list of commands to execute the code
         commands = get_code_execution_command(self.lang, code)
 
         # Execute all commands
         for command in commands:
-            self.execute_command(command)
+            output = self.execute_command(command)
+
+        # Clean up the temporary code file
+        os.remove(code_file)
+
+        return (0, "Output")  # Placeholder return value
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:

@@ -26,7 +26,7 @@ def run_java_code():
                     System.out.println("Hello, World!");
                 }
             }
-            """
+            """,
         )
         print(output)
 
@@ -56,7 +56,7 @@ def run_cpp_code():
                 std::cout << "Hello, World!" << std::endl;
                 return 0;
             }
-            """
+            """,
         )
         print(output)
 
@@ -72,7 +72,7 @@ def run_cpp_code():
                 std::cout << std::endl;
                 return 0;
             }
-            """
+            """,
         )
         print(output)
 
@@ -90,7 +90,8 @@ def run_cpp_code():
                 std::cout << std::endl;
                 return 0;
             }
-            """
+            """,
+            libraries=["libstdc++"],
         )
         print(output)
 

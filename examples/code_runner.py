@@ -70,7 +70,7 @@ def run_cpp_code():
             std::cout << std::endl;
             return 0;
         }
-        """)
+        """, libraries=["libstdc++"])
         print(output)
 
 if __name__ == "__main__":

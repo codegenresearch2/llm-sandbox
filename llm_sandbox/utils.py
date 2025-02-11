@@ -6,32 +6,25 @@ from docker import DockerClient
 from llm_sandbox.const import SupportedLanguage, DefaultImage, NotSupportedLibraryInstallation, SupportedLanguageValues
 
 def image_exists(client: DockerClient, image: str) -> bool:
-    """
-    Check if a Docker image exists.
+    """Check if a Docker image exists.
 
-    Parameters:
+    Args:
     client (DockerClient): Docker client.
     image (str): Docker image.
 
     Returns:
     bool: True if the image exists, False otherwise.
-
-    Raises:
-    Exception: If an unexpected error occurs.
     """
     try:
         client.images.get(image)
         return True
     except docker.errors.ImageNotFound:
         return False
-    except Exception as e:
-        raise e
 
 def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optional[str]:
-    """
-    Get the command to install libraries for the given language.
+    """Get the command to install libraries for the given language.
 
-    Parameters:
+    Args:
     lang (str): Programming language.
     libraries (List[str]): List of libraries.
 
@@ -57,10 +50,9 @@ def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optio
         raise ValueError(f"Language {lang} is not supported")
 
 def get_code_file_extension(lang: str) -> str:
-    """
-    Get the file extension for the given language.
+    """Get the file extension for the given language.
 
-    Parameters:
+    Args:
     lang (str): Programming language.
 
     Returns:
@@ -85,10 +77,9 @@ def get_code_file_extension(lang: str) -> str:
         raise ValueError(f"Language {lang} is not supported")
 
 def get_code_execution_command(lang: str, code_file: str) -> List[str]:
-    """
-    Get the command to execute the code.
+    """Get the command to execute the code.
 
-    Parameters:
+    Args:
     lang (str): Programming language.
     code_file (str): Path to the code file.
 
@@ -114,10 +105,9 @@ def get_code_execution_command(lang: str, code_file: str) -> List[str]:
         raise ValueError(f"Language {lang} is not supported")
 
 def test_directory_existence(directory: str) -> bool:
-    """
-    Test if a directory exists.
+    """Test if a directory exists.
 
-    Parameters:
+    Args:
     directory (str): Directory path.
 
     Returns:
@@ -127,10 +117,9 @@ def test_directory_existence(directory: str) -> bool:
     return os.path.isdir(directory)
 
 def run_code(lang: str, code: str, libraries: List[str] = None, test_directory: str = None) -> str:
-    """
-    Run the code with the given language and libraries.
+    """Run the code with the given language and libraries.
 
-    Parameters:
+    Args:
     lang (str): Programming language.
     code (str): Code to be executed.
     libraries (List[str], optional): List of libraries to be installed. Defaults to None.

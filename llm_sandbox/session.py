@@ -23,13 +23,20 @@ class SandboxSession:
         keep_template: bool = False,
         verbose: bool = True,
     ):
+        """
+        Create a new sandbox session.
+
+        :param image: Docker image to use.
+        :param dockerfile: Path to the Dockerfile, if image is not provided.
+        :param lang: Language of the code.
+        :param keep_template: If True, the image and container will not be removed after the session ends.
+        :param verbose: If True, print messages.
+        """
         if image and dockerfile:
-            raise ValueError("Only one of image or dockerfile should be provided")
+            raise ValueError("Only one of image or dockerfile should be provided.")
 
         if lang not in SupportedLanguageValues:
-            raise ValueError(
-                f"Language {lang} is not supported. Must be one of {SupportedLanguageValues}"
-            )
+            raise ValueError(f"Language {lang} is not supported. Must be one of {SupportedLanguageValues}.")
 
         if not image and not dockerfile:
             image = DefaultImage.__dict__[lang.upper()]
@@ -45,11 +52,11 @@ class SandboxSession:
         self.verbose = verbose
 
     def open(self):
-        warning_str = "Since the `keep_template` flag is set to True, the docker image will not be removed after the session ends and remains for future use."
+        warning_str = "Since the `keep_template` flag is set to True, the Docker image will not be removed after the session ends and remains for future use."
         if self.dockerfile:
             self.path = os.path.dirname(self.dockerfile)
             if self.verbose:
-                f_str = f"Building docker image from {self.dockerfile}"
+                f_str = f"Building Docker image from {self.dockerfile}."
                 f_str = f"{f_str}\n{warning_str}" if self.keep_template else f_str
                 print(f_str)
 
@@ -63,7 +70,7 @@ class SandboxSession:
         if isinstance(self.image, str):
             if not image_exists(self.client, self.image):
                 if self.verbose:
-                    f_str = f"Pulling image {self.image}.."
+                    f_str = f"Pulling image {self.image}..."
                     f_str = f"{f_str}\n{warning_str}" if self.keep_template else f_str
                     print(f_str)
 
@@ -72,7 +79,7 @@ class SandboxSession:
             else:
                 self.image = self.client.images.get(self.image)
                 if self.verbose:
-                    print(f"Using image {self.image.tags[-1]}")
+                    print(f"Using image {self.image.tags[-1]}.")
 
         self.container = self.client.containers.run(self.image, detach=True, tty=True)
 
@@ -95,47 +102,41 @@ class SandboxSession:
                 elif isinstance(self.image, Image):
                     self.image.remove(force=True)
                 else:
-                    raise ValueError("Invalid image type")
+                    raise ValueError("Invalid image type.")
             else:
                 if self.verbose:
-                    print(f"Image {self.image.tags[-1]} is in use by other containers. Skipping removal..")
+                    print(f"Image {self.image.tags[-1]} is in use by other containers. Skipping removal...")
 
     def run(self, code: str, libraries: Optional[List] = None):
         if not self.container:
             raise RuntimeError("Session is not open. Please call open() method before running code.")
 
-        commands = []
-
         if libraries:
             if self.lang.upper() in NotSupportedLibraryInstallation:
                 raise ValueError(f"Library installation has not been supported for {self.lang} yet!")
 
-            commands.append(get_libraries_installation_command(self.lang, libraries))
+            command = get_libraries_installation_command(self.lang, libraries)
+            self.execute_command(command)
 
         code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
         with open(code_file, "w") as f:
             f.write(code)
 
         self.copy_to_runtime(code_file, code_file)
-
-        if self.lang == SupportedLanguage.CPP:
-            commands.append(f"g++ -o /tmp/executable {code_file}")
-            commands.append("/tmp/executable")
-        else:
-            commands.append(get_code_execution_command(self.lang, code_file))
-
-        return commands
+        command = get_code_execution_command(self.lang, code_file)
+        output = self.execute_command(command)
+        return output
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:
             raise RuntimeError("Session is not open. Please call open() method before copying files.")
 
         if self.verbose:
-            print(f"Copying {self.container.short_id}:{src} to {dest}..")
+            print(f"Copying {self.container.short_id}:{src} to {dest}...")
 
         bits, stat = self.container.get_archive(src)
         if stat["size"] == 0:
-            raise FileNotFoundError(f"File {src} not found in the container")
+            raise FileNotFoundError(f"File {src} not found in the container.")
 
         tarstream = io.BytesIO(b"".join(bits))
         with tarfile.open(fileobj=tarstream, mode="r") as tar:
@@ -145,16 +146,12 @@ class SandboxSession:
         if not self.container:
             raise RuntimeError("Session is not open. Please call open() method before copying files.")
 
-        is_created_dir = False
         directory = os.path.dirname(dest)
-        if directory:
+        if directory and not self.container.exec_run(f"test -d {directory}")[0] == 0:
             self.container.exec_run(f"mkdir -p {directory}")
-            is_created_dir = True
 
         if self.verbose:
-            if is_created_dir:
-                print(f"Creating directory {self.container.short_id}:{directory}")
-            print(f"Copying {src} to {self.container.short_id}:{dest}..")
+            print(f"Copying {src} to {self.container.short_id}:{dest}...")
 
         tarstream = io.BytesIO()
         with tarfile.open(fileobj=tarstream, mode="w") as tar:
@@ -165,7 +162,7 @@ class SandboxSession:
 
     def execute_command(self, command: Optional[str]):
         if not command:
-            raise ValueError("Command cannot be empty")
+            raise ValueError("Command cannot be empty.")
 
         if not self.container:
             raise RuntimeError("Session is not open. Please call open() method before executing commands.")
@@ -177,7 +174,7 @@ class SandboxSession:
         output = ""
 
         if self.verbose:
-            print("Output:", end=" ")
+            print("Output: ", end="")
 
         for chunk in exec_log:
             chunk_str = chunk.decode("utf-8")
@@ -196,29 +193,23 @@ class SandboxSession:
 
 def run_python_code():
     with SandboxSession(lang="python", keep_template=True, verbose=True) as session:
-        commands = session.run("print('Hello, World!')")
-        for command in commands:
-            output = session.execute_command(command)
-            print(output)
+        output = session.run("print('Hello, World!')")
+        print(output)
 
-        commands = session.run(
+        output = session.run(
             "import numpy as np\nprint(np.random.rand())", libraries=["numpy"]
         )
-        for command in commands:
-            output = session.execute_command(command)
-            print(output)
+        print(output)
 
         session.execute_command("pip install pandas")
-        commands = session.run("import pandas as pd\nprint(pd.__version__)")
-        for command in commands:
-            output = session.execute_command(command)
-            print(output)
+        output = session.run("import pandas as pd\nprint(pd.__version__)")
+        print(output)
 
         session.copy_to_runtime("README.md", "/sandbox/data.csv")
 
 def run_java_code():
     with SandboxSession(lang="java", keep_template=True, verbose=True) as session:
-        commands = session.run(
+        output = session.run(
             """
             public class Main {
                 public static void main(String[] args) {
@@ -227,18 +218,14 @@ def run_java_code():
             }
             """
         )
-        for command in commands:
-            output = session.execute_command(command)
-            print(output)
+        print(output)
 
 def run_javascript_code():
     with SandboxSession(lang="javascript", keep_template=True, verbose=True) as session:
-        commands = session.run("console.log('Hello, World!')")
-        for command in commands:
-            output = session.execute_command(command)
-            print(output)
+        output = session.run("console.log('Hello, World!')")
+        print(output)
 
-        commands = session.run(
+        output = session.run(
             """
             const axios = require('axios');
             axios.get('https://jsonplaceholder.typicode.com/posts/1')
@@ -246,13 +233,11 @@ def run_javascript_code():
             """,
             libraries=["axios"],
         )
-        for command in commands:
-            output = session.execute_command(command)
-            print(output)
+        print(output)
 
 def run_cpp_code():
     with SandboxSession(lang="cpp", keep_template=True, verbose=True) as session:
-        commands = session.run(
+        output = session.run(
             """
             #include <iostream>
             int main() {
@@ -261,11 +246,9 @@ def run_cpp_code():
             }
             """
         )
-        for command in commands:
-            output = session.execute_command(command)
-            print(output)
+        print(output)
 
-        commands = session.run(
+        output = session.run(
             """
             #include <iostream>
             #include <vector>
@@ -279,11 +262,9 @@ def run_cpp_code():
             }
             """
         )
-        for command in commands:
-            output = session.execute_command(command)
-            print(output)
+        print(output)
 
-        commands = session.run(
+        output = session.run(
             """
             #include <iostream>
             #include <vector>
@@ -300,9 +281,7 @@ def run_cpp_code():
             """,
             libraries=["libstdc++"],
         )
-        for command in commands:
-            output = session.execute_command(command)
-            print(output)
+        print(output)
 
 if __name__ == "__main__":
     run_python_code()

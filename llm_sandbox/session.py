@@ -133,12 +133,12 @@ class SandboxSession:
                     f"Library installation has not been supported for {self.lang} yet!"
                 )
 
-            commands = get_code_execution_command(self.lang, code)
-            output = ""
-            for command in commands:
-                output += self.execute_command(command)
-            return output
+            # Install libraries
+            for library in libraries:
+                install_command = get_libraries_installation_command(self.lang, [library])
+                self.execute_command(install_command)
 
+        # Execute the code
         code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
         with open(code_file, "w") as f:
             f.write(code)
@@ -170,15 +170,19 @@ class SandboxSession:
                 "Session is not open. Please call open() method before copying files."
             )
 
-        is_created_dir = False
+        # Check if directory exists before creating it
         directory = os.path.dirname(dest)
         if directory:
-            self.container.exec_run(f"mkdir -p {directory}")
-            is_created_dir = True
+            exists_command = f"mkdir -p {directory}"
+            if self.verbose:
+                print(f"Checking if directory exists: {directory}")
+            _, exists_output = self.container.exec_run(exists_command)
+            if "File exists" not in exists_output.decode():
+                if self.verbose:
+                    print(f"Creating directory: {directory}")
+                self.container.exec_run(f"mkdir -p {directory}")
 
         if self.verbose:
-            if is_created_dir:
-                print(f"Creating directory {self.container.short_id}:{directory}")
             print(f"Copying {src} to {self.container.short_id}:{dest}..")
 
         tarstream = io.BytesIO()

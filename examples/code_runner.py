@@ -7,23 +7,16 @@ def run_code(lang: str, code: str, libraries: list = None):
             install_command = get_libraries_installation_command(lang, libraries)
             session.execute_command(install_command)
 
-        if lang == 'cpp':
-            session.write_code_to_file(code, 'main.cpp')
-            exec_commands = get_code_execution_command(lang, 'main.cpp')
-            for command in exec_commands:
-                output = session.execute_command(command)
-                print(output)
-        else:
-            output = session.run(code)
-            print(output)
+        output = session.run(code)
+        print(output)
 
-def run_python_code():
+def execute_python_code():
     run_code('python', "print('Hello, World!')")
     run_code('python', "import numpy as np\nprint(np.random.rand())", libraries=['numpy'])
     run_code('python', "import pandas as pd\nprint(pd.__version__)", libraries=['pandas'])
     session.copy_to_runtime('README.md', '/sandbox/data.csv')
 
-def run_java_code():
+def execute_java_code():
     run_code('java', """
         public class Main {
             public static void main(String[] args) {
@@ -32,7 +25,7 @@ def run_java_code():
         }
     """)
 
-def run_javascript_code():
+def execute_javascript_code():
     run_code('javascript', "console.log('Hello, World!')")
     run_code('javascript', """
         const axios = require('axios');
@@ -40,7 +33,7 @@ def run_javascript_code():
             .then(response => console.log(response.data));
     """, libraries=['axios'])
 
-def run_cpp_code():
+def execute_cpp_code():
     run_code('cpp', """
         #include <iostream>
         int main() {
@@ -76,7 +69,7 @@ def run_cpp_code():
     """, libraries=['libstdc++'])
 
 if __name__ == '__main__':
-    run_python_code()
-    run_java_code()
-    run_javascript_code()
-    run_cpp_code()
+    execute_python_code()
+    execute_java_code()
+    execute_javascript_code()
+    execute_cpp_code()

@@ -46,7 +46,7 @@ def get_libraries_installation_command(lang: str, libraries: List[str]) -> Optio
     elif lang == SupportedLanguage.JAVASCRIPT:
         return f"yarn add {' '.join(libraries)}"
     elif lang == SupportedLanguage.CPP:
-        return f"apt-get update && apt-get install -y {' '.join(libraries)}"
+        return f"apt-get install -y {' '.join(libraries)}"
     elif lang == SupportedLanguage.GO:
         return f"go get {' '.join(libraries)}"
     elif lang == SupportedLanguage.RUBY:
@@ -79,7 +79,7 @@ def get_code_file_extension(lang: str) -> str:
     else:
         raise ValueError(f"Language {lang} is not supported")
 
-def get_code_execution_command(lang: str, code_file: str) -> List[str]:
+def get_code_execution_command(lang: str, code_file: str) -> list:
     """
     Get the command to execute the code.
 
@@ -88,12 +88,12 @@ def get_code_execution_command(lang: str, code_file: str) -> List[str]:
     code_file (str): Path to the code file.
 
     Returns:
-    List[str]: Execution command as a list of strings.
+    list: Execution command as a list of strings.
     """
     if lang == SupportedLanguage.PYTHON:
         return [f"python {code_file}"]
     elif lang == SupportedLanguage.JAVA:
-        return [f"javac {code_file}", f"java {os.path.splitext(code_file)[0]}"]
+        return [f"java {os.path.splitext(code_file)[0]}"]
     elif lang == SupportedLanguage.JAVASCRIPT:
         return [f"node {code_file}"]
     elif lang == SupportedLanguage.CPP:

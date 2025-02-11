@@ -136,9 +136,15 @@ class SandboxSession:
             command = get_libraries_installation_command(self.lang, libraries)
             self.execute_command(command)
 
-        commands = get_code_execution_command(self.lang, code)
+        code_file = f"/tmp/code.{get_code_file_extension(self.lang)}"
+        with open(code_file, "w") as f:
+            f.write(code)
+
+        commands = get_code_execution_command(self.lang, code_file)
         for command in commands:
-            self.execute_command(command)
+            result = self.execute_command(command)
+            if result is not None:
+                return result
 
     def copy_from_runtime(self, src: str, dest: str):
         if not self.container:
@@ -201,7 +207,7 @@ class SandboxSession:
             if self.verbose:
                 print(chunk_str, end="")
 
-        return output
+        return (0, output) if output else None
 
     def __enter__(self):
         self.open()

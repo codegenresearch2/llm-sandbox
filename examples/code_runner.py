@@ -4,25 +4,53 @@ from llm_sandbox import SandboxSession
 from llm_sandbox.utils import get_libraries_installation_command, get_code_execution_command, get_code_file_extension
 from llm_sandbox.const import SupportedLanguage
 
-def run_code(lang: str, code: str, libraries: List[str] = None):
-    output_dir = f'output_{lang}'
+def run_python_code(code: str, libraries: List[str] = None):
+    output_dir = f'output_{SupportedLanguage.PYTHON}'
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    with SandboxSession(lang=lang, keep_template=True, verbose=True) as session:
+    with SandboxSession(lang=SupportedLanguage.PYTHON, keep_template=True, verbose=True) as session:
         if libraries:
-            install_command = get_libraries_installation_command(lang, libraries)
+            install_command = get_libraries_installation_command(SupportedLanguage.PYTHON, libraries)
             session.execute_command(install_command)
 
-        code_file = f'code.{get_code_file_extension(lang)}'
-        with open(os.path.join(output_dir, code_file), 'w') as f:
-            f.write(code)
+        output = session.run(code)
+        print(output)
 
-        session.copy_to_runtime(code_file, f'/sandbox/{code_file}')
-        execution_commands = get_code_execution_command(lang, code_file)
-        for command in execution_commands:
-            output = session.run(command)
-            print(output)
+def run_java_code(code: str):
+    output_dir = f'output_{SupportedLanguage.JAVA}'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    with SandboxSession(lang=SupportedLanguage.JAVA, keep_template=True, verbose=True) as session:
+        output = session.run(code)
+        print(output)
+
+def run_javascript_code(code: str, libraries: List[str] = None):
+    output_dir = f'output_{SupportedLanguage.JAVASCRIPT}'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    with SandboxSession(lang=SupportedLanguage.JAVASCRIPT, keep_template=True, verbose=True) as session:
+        if libraries:
+            install_command = get_libraries_installation_command(SupportedLanguage.JAVASCRIPT, libraries)
+            session.execute_command(install_command)
+
+        output = session.run(code)
+        print(output)
+
+def run_cpp_code(code: str, libraries: List[str] = None):
+    output_dir = f'output_{SupportedLanguage.CPP}'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    with SandboxSession(lang=SupportedLanguage.CPP, keep_template=True, verbose=True) as session:
+        if libraries:
+            install_command = get_libraries_installation_command(SupportedLanguage.CPP, libraries)
+            session.execute_command(install_command)
+
+        output = session.run(code)
+        print(output)
 
 if __name__ == '__main__':
     python_code = """
@@ -32,7 +60,7 @@ if __name__ == '__main__':
     import pandas as pd
     print(pd.__version__)
     """
-    run_code(SupportedLanguage.PYTHON, python_code, libraries=['numpy', 'pandas'])
+    run_python_code(python_code, libraries=['numpy', 'pandas'])
 
     java_code = """
     public class Main {
@@ -41,7 +69,7 @@ if __name__ == '__main__':
         }
     }
     """
-    run_code(SupportedLanguage.JAVA, java_code)
+    run_java_code(java_code)
 
     javascript_code = """
     console.log('Hello, World!')
@@ -49,7 +77,7 @@ if __name__ == '__main__':
     axios.get('https://jsonplaceholder.typicode.com/posts/1')
         .then(response => console.log(response.data));
     """
-    run_code(SupportedLanguage.JAVASCRIPT, javascript_code, libraries=['axios'])
+    run_javascript_code(javascript_code, libraries=['axios'])
 
     cpp_code = """
     #include <iostream>
@@ -58,7 +86,7 @@ if __name__ == '__main__':
         return 0;
     }
     """
-    run_code(SupportedLanguage.CPP, cpp_code)
+    run_cpp_code(cpp_code)
 
     cpp_code_with_lib = """
     #include <iostream>
@@ -74,4 +102,4 @@ if __name__ == '__main__':
         return 0;
     }
     """
-    run_code(SupportedLanguage.CPP, cpp_code_with_lib, libraries=['libstdc++'])
+    run_cpp_code(cpp_code_with_lib, libraries=['libstdc++'])

@@ -1,6 +1,5 @@
 from llm_sandbox import SandboxSession
-from llm_sandbox.utils import get_libraries_installation_command, get_code_execution_command
-from llm_sandbox.const import DefaultImage, SupportedLanguageValues, NotSupportedLibraryInstallation
+from llm_sandbox.const import SupportedLanguageValues, NotSupportedLibraryInstallation
 import os
 
 def run_python_code():
@@ -79,6 +78,7 @@ def run_cpp_code():
         )
         print(output)
 
+        # Include the necessary library for std::reverse
         output = session.run(
             """
             #include <iostream>
@@ -94,6 +94,7 @@ def run_cpp_code():
                 return 0;
             }
             """,
+            libraries=["libstdc++"],  # Specify the library for std::reverse
         )
         print(output)
 

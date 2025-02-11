@@ -61,9 +61,8 @@ class SandboxSession:
         if self.dockerfile:
             self.path = os.path.dirname(self.dockerfile)
             if self.verbose:
-                f_str = f"Building docker image from {self.dockerfile}"
-                f_str = f"{f_str}\n{warning_str}" if self.keep_template else f_str
-                print(f_str)
+                print(f"{self.path}: Building docker image from {self.dockerfile}")
+                print(warning_str)
 
             self.image, _ = self.client.images.build(
                 path=self.path,
@@ -75,10 +74,7 @@ class SandboxSession:
         if isinstance(self.image, str):
             if not image_exists(self.client, self.image):
                 if self.verbose:
-                    f_str = f"Pulling image {self.image}.."
-                    f_str = f"{f_str}\n{warning_str}" if self.keep_template else f_str
-                    print(f_str)
-
+                    print(f"Pulling image {self.image}..")
                 self.image = self.client.images.pull(self.image)
                 self.is_create_template = True
             else:
